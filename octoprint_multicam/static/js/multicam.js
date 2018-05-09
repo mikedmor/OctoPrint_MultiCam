@@ -4,35 +4,45 @@ $(function() {
 
         var camViewPort = $('#webcam_image');
 
+        var currentStream = ""; //camViewPort.attr('src').substr(0, camViewPort.attr('src').indexOf('?'));
+
         self.settings = parameters[0];
 
         self.multicam_profiles = ko.observableArray();
 
+        self.onBeforeBinding = function() {
+            self.multicam_profiles(self.settings.settings.plugins.multicam.multicam_profiles());
+        };
+
+        self.onEventSettingsUpdated = function(payload) {
+            self.multicam_profiles(self.settings.settings.plugins.multicam.multicam_profiles());
+        };
+
         self.addMultiCamProfile = function() {
-            self.multicam_profiles.push({name: "Webcam "+self.multicam_profiles().length, URL: "http://"});
+            //console.log("Adding New profile for Webcam "+self.multicam_profiles().length);
+            self.settings.settings.plugins.multicam.multicam_profiles.push({name: ko.observable('Webcam '+self.multicam_profiles().length), URL: ko.observable('http://')});
+            //console.log("Updating local multicam_profiles variable");
+            self.multicam_profiles(self.settings.settings.plugins.multicam.multicam_profiles());
         };
 
         self.removeMultiCamProfile = function(profile) {
-            self.multicam_profiles.remove(profile);
+            //console.log("Removing profile");
+            self.settings.settings.plugins.multicam.multicam_profiles.remove(profile);
+            //console.log("Updating local multicam_profiles variable");
+            self.multicam_profiles(self.settings.settings.plugins.multicam.multicam_profiles());
         };
 
-        //self.currentStream = ko.observable();
+        //TODO: get binding working with: enable: $parent.currentLoaded(URL)
+        self.currentLoaded = function(URL) {
+            return URL != currentStream;
+        }.bind(MultiCamViewModel);
 
-        //self.newStream = ko.observable();
-
-        //self.goToUrl = function() {
-        //    self.currentStream(self.newStream());
-        //};
-
-        self.loadWebcam = function() {
-            console.log("Changing stream to: "+self.settings.settings.plugins.multicam.multicamStream2());
-            camViewPort.attr('src',self.settings.settings.plugins.multicam.multicamStream2());
+        self.loadWebcam = function(profile, event) {
+            console.log("CurrentStream:"+currentStream);
+            console.log("Changing stream to: "+ko.toJS(profile).URL);
+            camViewPort.attr('src',ko.toJS(profile).URL);
+            currentStream = ko.toJS(profile).URL;
         };
-
-        //self.onBeforeBinding = function() {
-        //    self.newStream(self.settings.settings.plugins.multicam.multicamStream1());
-        //    self.goToUrl();
-        //};
 
         self.onAfterBinding = function() {
             var camControl = $('#camControl');
@@ -40,12 +50,13 @@ $(function() {
 
             // Inserts the control after the general settings under Control Tab
             camControl.insertAfter(container);
-        }
+        };
+
     }
 
     OCTOPRINT_VIEWMODELS.push([
         MultiCamViewModel,
         ["settingsViewModel", "controlViewModel"],
-        ["#camControl"]
+        ["#settings_plugin_multicam_form","#camControl"]
     ]);
 });

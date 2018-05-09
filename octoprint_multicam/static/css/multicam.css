@@ -8,3 +8,33 @@
     color: #fff;
     padding: 0;
 }
+
+.ui-pnotify.multicam-reloadneeded .ui-pnotify-container {
+	background-color: #404040 !important;
+	background-image: none !important;
+	border: none !important;
+	-moz-border-radius: 10px;
+	-webkit-border-radius: 10px;
+	border-radius: 10px;
+}
+.ui-pnotify.multicam-reloadneeded .ui-pnotify-title, .ui-pnotify.multicam-reloadneeded .ui-pnotify-text {
+	color: #FFF !important;
+}
+.ui-pnotify.multicam-reloadneeded .ui-pnotify-title {
+	font-weight: bold;
+	margin-bottom: 10px;
+	padding-bottom: 10px;
+	border-bottom: 1px solid #FFF;
+	text-indent: -60px;
+}
+.ui-pnotify.multicam-reloadneeded .ui-pnotify-icon {
+	margin-top: 40px;
+	float: left;
+}
+.ui-pnotify.multicam-reloadneeded .icon {
+	margin: 10px;
+	width: 40px;
+	height: 40px;
+	font-size: 40px;
+	color: #FFF;
+}

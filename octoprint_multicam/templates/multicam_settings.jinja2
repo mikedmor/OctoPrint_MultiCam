@@ -11,10 +11,10 @@
                 <input type="text" class="span12 text-right" data-bind="value: name">
             </div>
             <div class="input-append span5">
-                <input type="text" class="span12 text-right" data-bind="value: URL">
+                <input type="text" class="span12 text-right" data-bind="value: URL, enable: $index()!==0, attr: { 'title': $index()!==0 ? 'URL of stream' : 'Edit this field in the Webcam & Timelapse tab (Applies after Save)' }">
             </div>
             <div class="span2">
-                <button title="Remove Webcam" class="btn btn-danger" data-bind="click: $parent.removeMultiCamProfile"><i class="fa fa-trash-o"></i></button>
+                <button title="Remove Webcam" class="btn btn-danger" data-bind="click: $parent.removeMultiCamProfile, enable: $index()!==0, attr: { 'title': $index()!==0 ? 'Remove Webcam' : 'Default Webcam cannot be removed!' }"><i class="fa fa-trash-o"></i></button>
             </div>
         </div>
     </div>

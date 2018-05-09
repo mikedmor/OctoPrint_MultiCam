@@ -5,6 +5,6 @@ Future updates will include the more options to show different types of streams,
 
 ## Screenshots
 
-![Control Preview][Octoprint_MultiCam_Control.png]
+![Control Preview](Octoprint_MultiCam_Control.png)
 
-![Setting Preview][Octoprint_MultiCam_Settings.png]
+![Setting Preview](Octoprint_MultiCam_Settings.png)

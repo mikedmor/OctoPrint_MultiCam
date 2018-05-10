@@ -18,8 +18,12 @@ class MultiCamPlugin(octoprint.plugin.StartupPlugin,
     def on_after_startup(self):
         self._logger.info("MultiCam Loaded! (more: %s)" % self._settings.get(["multicamStream1"]))
 
+    def get_settings_version(self):
+        return 1
+
     def on_settings_migrate(self, target, current=None):
-        if current is None or current < 1:
+        if current is None or current < self.get_settings_version():
+            self._logger.debug("Settings Migration Needed! Resetting to defaults!")
             # Reset plug settings to defaults.
             self._settings.set(['multicam_profiles'], self.get_settings_defaults()["multicam_profiles"])
 

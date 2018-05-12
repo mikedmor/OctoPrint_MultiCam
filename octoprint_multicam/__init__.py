@@ -16,7 +16,7 @@ class MultiCamPlugin(octoprint.plugin.StartupPlugin,
         )
 
     def on_after_startup(self):
-        self._logger.info("MultiCam Loaded! (more: %s)" % self._settings.get(["multicamStream1"]))
+        self._logger.info("MultiCam Loaded! (more: %s)" % self._settings.get(["multicam_profiles"]))
 
     def get_settings_version(self):
         return 1
@@ -29,20 +29,6 @@ class MultiCamPlugin(octoprint.plugin.StartupPlugin,
 
     def get_settings_defaults(self):
         return dict(multicam_profiles=[{'name':'Default','URL':octoprint.settings.settings().get(["webcam","stream"]), 'isButtonEnabled':'true'}])
-
-    def on_settings_save(self, data):
-        old_profiles = self._settings.get(["multicam_profiles"])
-
-        octoprint.plugin.SettingsPlugin.on_settings_save(self, data)
-
-        new_profiles = self._settings.get(["multicam_profiles"])
-        if old_profiles != new_profiles:
-            self._logger.info("profiles changed from {old_profiles} to {new_profiles}".format(**locals()))
-            flattened_profiles = []
-            for profiles in new_profiles:
-                flattened_profiles.append(profiles['name'])
-            self._settings.global_set(["name","URL","isButtonEnabled"],flattened_profiles)
-            self._plugin_manager.send_plugin_message(self._identifier, dict(reload=True))
 
     def get_template_configs(self):
         return [

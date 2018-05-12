@@ -40,6 +40,7 @@ $(function() {
         };
 
         self.loadWebcam = function(profile, event) {
+            camViewPort.attr('src',ko.toJS(profile).URL);
             ko.utils.arrayForEach(self.multicam_profiles(), function (item) {
                 if(profile===item) {
                     item.isButtonEnabled(false);

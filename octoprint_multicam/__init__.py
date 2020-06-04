@@ -62,9 +62,9 @@ class MultiCamPlugin(octoprint.plugin.StartupPlugin,
         data = []
         for index, profile in enumerate(self._settings.get(['multicam_profiles'])):
             if index==0:
-                data.push({'name': 'Default', 'stream_url': self._settings.global_get(["webcam","stream"]), 'snapshot_url': self._settings.global_get(["webcam", "snapshot"])})
+                data.append({'name': 'Default', 'stream_url': self._settings.global_get(["webcam","stream"]), 'snapshot_url': self._settings.global_get(["webcam", "snapshot"])})
             else:
-                data.push({'name': profile['name'], 'stream_url': profile['URL'], 'snapshot_url': profile['snapshot_url']})
+                data.append({'name': profile['name'], 'stream_url': profile['URL'], 'snapshot_url': profile['snapshot_url']})
         return data
     
         

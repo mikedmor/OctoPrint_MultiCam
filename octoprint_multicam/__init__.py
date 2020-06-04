@@ -28,7 +28,7 @@ class MultiCamPlugin(octoprint.plugin.StartupPlugin,
             self._settings.set(['multicam_profiles'], self.get_settings_defaults()["multicam_profiles"])
 
     def get_settings_defaults(self):
-        return dict(multicam_profiles=[{'name':'Default','URL':octoprint.settings.settings().get(["webcam","stream"]), 'isButtonEnabled':'true'}])
+        return dict(multicam_profiles=[{'name':'Default', 'URL':octoprint.settings.settings().get(["webcam","stream"]), 'snapshot_url':octoprint.settings.settings().get(["webcam", "snapshot"]), 'isButtonEnabled':'true'}])
 
     def get_template_configs(self):
         return [
@@ -56,18 +56,35 @@ class MultiCamPlugin(octoprint.plugin.StartupPlugin,
                 pip="https://github.com/mikedmor/OctoPrint_MultiCam/archive/{target_version}.zip"
             )
         )
-
+    
+    ##~~ Exposed as helper
+    def get_webcams(self):
+        data = []
+        for index, profile in enumerate(self._settings.get(['multicam_profiles'])):
+            if index==0:
+                data.push({'name': 'Default', 'stream_url': self._settings.global_get(["webcam","stream"]), 'snapshot_url': self._settings.global_get(["webcam", "snapshot"])})
+            else:
+                data.push({'name': profile['name'], 'stream_url': profile['URL'], 'snapshot_url': profile['snapshot_url']})
+        return data
+    
+        
 __plugin_name__ = "MultiCam"
 __plugin_pythoncompat__ = ">=2.7,<4"
 
 def __plugin_load__():
+    plugin = MultiCamPlugin()
     global __plugin_implementation__
-    __plugin_implementation__ = MultiCamPlugin()
+    __plugin_implementation__ = plugin
 
     global __plugin_hooks__
     __plugin_hooks__ = {
         "octoprint.plugin.softwareupdate.check_config": __plugin_implementation__.get_update_information
     }
+    
+    global __plugin_helpers__
+    __plugin_helpers__ = dict(
+        get_webcams=plugin.get_webcams
+    )
 
 
 

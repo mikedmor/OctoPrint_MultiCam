@@ -30,7 +30,7 @@ $(function() {
         };
 
         self.addMultiCamProfile = function() {
-            self.settings.settings.plugins.multicam.multicam_profiles.push({name: ko.observable('Webcam '+self.multicam_profiles().length), URL: ko.observable('http://'), isButtonEnabled: ko.observable(true)});
+            self.settings.settings.plugins.multicam.multicam_profiles.push({name: ko.observable('Webcam '+self.multicam_profiles().length), URL: ko.observable('http://'), snapshot_url: ko.observable(''), isButtonEnabled: ko.observable(true)});
             self.multicam_profiles(self.settings.settings.plugins.multicam.multicam_profiles());
         };
 

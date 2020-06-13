@@ -19,7 +19,7 @@ class MultiCamPlugin(octoprint.plugin.StartupPlugin,
         self._logger.info("MultiCam Loaded! (more: %s)" % self._settings.get(["multicam_profiles"]))
 
     def get_settings_version(self):
-        return 1
+        return 2
 
     def on_settings_migrate(self, target, current=None):
         if current is None or current < self.get_settings_version():
@@ -28,7 +28,14 @@ class MultiCamPlugin(octoprint.plugin.StartupPlugin,
             self._settings.set(['multicam_profiles'], self.get_settings_defaults()["multicam_profiles"])
 
     def get_settings_defaults(self):
-        return dict(multicam_profiles=[{'name':'Default','URL':octoprint.settings.settings().get(["webcam","stream"]), 'isButtonEnabled':'true'}])
+        return dict(multicam_profiles=[{
+            'name':'Default',
+            'URL': octoprint.settings.settings().get(["webcam","stream"]),
+            'snapshot': octoprint.settings.settings().get(["webcam","snapshot"]),
+            'flipH':octoprint.settings.settings().get(["webcam","flipH"]),
+            'flipV':octoprint.settings.settings().get(["webcam","flipV"]),
+            'rotate90':octoprint.settings.settings().get(["webcam","rotate90"]),
+            'isButtonEnabled':'true'}])
 
     def get_template_configs(self):
         return [

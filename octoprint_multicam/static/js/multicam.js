@@ -14,9 +14,7 @@ $(function() {
         self.multicam_selected = ko.observable('');
 
         self.onBeforeBinding = function() {
-                console.log("Binding control to multicam");
-                camViewPort.attr("data-bind","css: { flipH: settings.plugins.multicam.multicam_profiles[].flipH}; attr: {url: }");
-                self.multicam_profiles(self.settings.settings.plugins.multicam.multicam_profiles());
+            self.multicam_profiles(self.settings.settings.plugins.multicam.multicam_profiles());
         };
 
         self.onSettingsShown = function() {

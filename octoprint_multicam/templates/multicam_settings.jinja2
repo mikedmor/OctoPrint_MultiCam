@@ -2,18 +2,40 @@
 <form id="settings_plugin_multicam_form" class="form-horizontal">
     <h3>{{ _('Multicam Profiles') }}</h3>
     <div class="row-fluid">
-        <div class="span5"><h4>{{ _('Name') }}</h4></div>
-        <div class="span5"><h4>{{ _('URL') }}</h4></div>
+        <div class="span3 text-center"><h4>{{ _('Name') }}</h4></div>
+        <div class="span4 text-center"><h4>{{ _('URL') }}</h4></div>
+        <!--<div class="span5"><h4>{{ _('Snapshot') }}</h4></div>-->
+        <div class="span1 text-center"><h4><i class="fa fa-arrows-alt fa-2x" title="{{ _('Stream aspect ratio') }}"></i></h4></div>
+        <div class="span1 text-center"><h4><i class="fa fa-arrows-h fa-2x" title="{{ _('Flip webcam horizontally') }}"></i></h4></div>
+        <div class="span1 text-center"><h4><i class="fa fa-arrows-v fa-2x" title="{{ _('Flip webcam vertically') }}"></i></h4></div>
+        <div class="span1 text-center"><h4><i class="fa fa-rotate-right fa-2x" title="{{ _('Rotate webcam 90 degrees counter clockwise') }}"></i></h4></div>
     </div>
     <div data-bind="foreach: settings.settings.plugins.multicam.multicam_profiles">
         <div class="row-fluid" style="margin-bottom: 5px">
-            <div class="span5">
+            <div class="span3">
                 <input type="text" class="span12 text-right" data-bind="value: name">
             </div>
-            <div class="input-append span5">
+            <div class="input-append span4">
                 <input type="text" class="span12 text-right" data-bind="value: URL, enable: $index()!==0, attr: { 'title': $index()!==0 ? 'URL of stream' : 'Edit this field in the Webcam & Timelapse tab (Applies after Save)' }">
             </div>
-            <div class="span2">
+            <!--
+            <div class="input-append span4">
+                <input type="text" class="span12 text-right" data-bind="value: snapshot, enable: $index()!==0, attr: { 'title': $index()!==0 ? 'URL of snapshot' : 'Edit this field in the Webcam & Timelapse tab (Applies after Save)' }">
+            </div>
+            -->
+            <div class="span1">
+                <select style="width: 100%" data-bind="options: $parent.settings.webcam_available_ratios, value: streamRatio, enable: $index()!==0, attr: { 'title': $index()!==0 ? 'Stream ratio' : 'Edit this field in the Webcam & Timelapse tab (Applies after Save)' }"></select>
+            </div>
+            <div class="span1">
+                <input style="padding: 4px; margin: 0px;" type="checkbox" class="span12 text-right" data-bind="checked: flipH, enable: $index()!==0, attr: { 'title': $index()!==0 ? 'Flip Horizontally' : 'Edit this field in the Webcam & Timelapse tab (Applies after Save)' }">
+            </div>
+            <div class="span1">
+                <input style="padding: 4px; margin: 0px;" type="checkbox" class="span12 text-right" data-bind="checked: flipV, enable: $index()!==0, attr: { 'title': $index()!==0 ? 'Flip Vertically' : 'Edit this field in the Webcam & Timelapse tab (Applies after Save)' }">
+            </div>
+            <div class="span1">
+                <input style="padding: 4px; margin: 0px;" type="checkbox" class="span12 text-right" data-bind="checked: rotate90, enable: $index()!==0, attr: { 'title': $index()!==0 ? 'Rotate 90' : 'Edit this field in the Webcam & Timelapse tab (Applies after Save)' }">
+            </div>
+            <div class="span1">
                 <button title="Remove Webcam" class="btn btn-danger" data-bind="click: $parent.removeMultiCamProfile, enable: $index()!==0, attr: { 'title': $index()!==0 ? 'Remove Webcam' : 'Default Webcam cannot be removed!' }"><i class="fa fa-trash-o"></i></button>
             </div>
         </div>

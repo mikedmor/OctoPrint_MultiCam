@@ -5,6 +5,7 @@ $(function() {
         var camViewPort = $('#webcam_image');
 
         self.settings = parameters[0];
+        self.control = parameters[1];
 
         self.multicam_profiles = ko.observableArray();
 
@@ -14,15 +15,47 @@ $(function() {
             self.multicam_profiles(self.settings.settings.plugins.multicam.multicam_profiles());
         };
 
+        self.onSettingsShown = function() {
+            // Force default webcam in settings to avoid confusion
+            self.loadWebcam(self.multicam_profiles()[0]);
+        };
+
         self.onSettingsBeforeSave = function() {
-            ko.utils.arrayForEach(self.multicam_profiles(), function (item, index) {
-                if(index == 0 && item.URL != $('#settings-webcamStreamUrl').val()) {
-                    console.log("Changes Detected in Webcam & Timelaspse URL");
+            // Update multicam profile for default webcam
+            ko.utils.arrayForEach(self.settings.settings.plugins.multicam.multicam_profiles(), function (item, index) {
+                if(index == 0 && item.URL() != $('#settings-webcamStreamUrl').val()) {
+                    console.log("Changes Detected in Webcam settings : URL");
                     item.URL($('#settings-webcamStreamUrl').val());
                 }
+                if(index == 0 && item.snapshot() != $('#settings-webcamSnapshotUrl').val()) {
+                    console.log("Changes Detected in Webcam settings : Snapshot URL");
+                    item.snapshot($('#settings-webcamSnapshotUrl').val());
+                }
+                if(index == 0 && item.streamRatio() != $('#settings-webcamStreamRatio').val()) {
+                    console.log("Changes Detected in Webcam settings : stream ratio");
+                    item.streamRatio($('#settings-webcamStreamRatio').val());
+                }
+                if(index == 0 && item.flipH() != $('#settings-webcamFlipH').is(':checked')) {
+                    console.log("Changes Detected in Webcam settings : FlipH");
+                    item.flipH($('#settings-webcamFlipH').is(':checked'));
+                }
+                if(index == 0 && item.flipV() != $('#settings-webcamFlipV').is(':checked')) {
+                    console.log("Changes Detected in Webcam settings : FlipV");
+                    item.flipV($('#settings-webcamFlipV').is(':checked'));
+                }
+                if(index == 0 && item.rotate90() != $('#settings-webcamRotate90').is(':checked')) {
+                    console.log("Changes Detected in Webcam settings : Rotate90");
+                    item.rotate90($('#settings-webcamRotate90').is(':checked'));
+                }
             });
-            self.settings.settings.plugins.multicam.multicam_profiles(self.multicam_profiles.slice(0));
-            self.onAfterTabChange();
+            /** To be deleted 
+             *  Not sure why it was there, but it was causing bugs with multiple times configuration editing
+             *  Fixed by the direct use of self.settings.settings.plugins.multicam.multicam_profiles() 
+             *     instead of self.multicam_profiles())  
+            //console.log("Multicam_profiles:", self.multicam_profiles());
+            //self.settings.settings.plugins.multicam.multicam_profiles(self.multicam_profiles.slice(0));
+            //self.onAfterTabChange();
+            */
         };
 
         self.onEventSettingsUpdated = function(payload) {
@@ -30,7 +63,15 @@ $(function() {
         };
 
         self.addMultiCamProfile = function() {
-            self.settings.settings.plugins.multicam.multicam_profiles.push({name: ko.observable('Webcam '+self.multicam_profiles().length), URL: ko.observable('http://'), isButtonEnabled: ko.observable(true)});
+            self.settings.settings.plugins.multicam.multicam_profiles.push({
+                name: ko.observable('Webcam '+self.multicam_profiles().length), 
+                URL: ko.observable('http://'), 
+                snapshot: ko.observable('http://'),
+                streamRatio: ko.observable(''),
+                flipH: ko.observable(false),
+                flipV: ko.observable(false),
+                rotate90: ko.observable(false),
+                isButtonEnabled: ko.observable(true)});
             self.multicam_profiles(self.settings.settings.plugins.multicam.multicam_profiles());
         };
 
@@ -40,7 +81,16 @@ $(function() {
         };
 
         self.loadWebcam = function(profile, event) {
-            camViewPort.attr('src',ko.toJS(profile).URL);
+            // Set webcam observables to selected webcam
+            self.settings.webcam_streamUrl(ko.toJS(profile).URL);
+            self.settings.webcam_snapshotUrl(ko.toJS(profile).snapshot);
+            self.settings.webcam_streamRatio(ko.toJS(profile).streamRatio);
+            self.settings.webcam_flipH(ko.toJS(profile).flipH);
+            self.settings.webcam_flipV(ko.toJS(profile).flipV);
+            self.settings.webcam_rotate90(ko.toJS(profile).rotate90);
+            // Force reload of webcam URL with new parameters
+            self.control._enableWebcam();
+            // Update buttons
             ko.utils.arrayForEach(self.multicam_profiles(), function (item) {
                 if(profile===item) {
                     item.isButtonEnabled(false);

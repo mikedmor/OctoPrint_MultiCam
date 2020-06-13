@@ -19,19 +19,36 @@ class MultiCamPlugin(octoprint.plugin.StartupPlugin,
         self._logger.info("MultiCam Loaded! (more: %s)" % self._settings.get(["multicam_profiles"]))
 
     def get_settings_version(self):
-        return 2
+        return 3
 
     def on_settings_migrate(self, target, current=None):
         if current is None or current < self.get_settings_version():
             self._logger.debug("Settings Migration Needed! Resetting to defaults!")
-            # Reset plug settings to defaults.
-            self._settings.set(['multicam_profiles'], self.get_settings_defaults()["multicam_profiles"])
+            profiles = self._settings.get(['multicam_profiles'])
+            # Migrate to 2
+            if current < 2:
+                for profile in profiles:
+                    profile['snapshot'] = octoprint.settings.settings().get(["webcam","snapshot"])
+                    profile['flipH'] = octoprint.settings.settings().get(["webcam","flipH"])
+                    profile['flipV'] = octoprint.settings.settings().get(["webcam","flipV"])
+                    profile['rotate90'] = octoprint.settings.settings().get(["webcam","rotate90"])
+            # Migrate to 3
+            if current < 3:
+                for profile in profiles:
+                    profile['streamRatio'] = octoprint.settings.settings().get(["webcam","streamRatio"])
+            # If script migration is up to date we migrate, else we reset to default
+            if (self.get_settings_version() == 3):
+                self._settings.set(['multicam_profiles'], profiles)
+            else:
+                # Reset plug settings to defaults.
+                self._settings.set(['multicam_profiles'], self.get_settings_defaults()["multicam_profiles"])
 
     def get_settings_defaults(self):
         return dict(multicam_profiles=[{
             'name':'Default',
             'URL': octoprint.settings.settings().get(["webcam","stream"]),
             'snapshot': octoprint.settings.settings().get(["webcam","snapshot"]),
+            'streamRatio': octoprint.settings.settings().get(["webcam","streamRatio"]),
             'flipH':octoprint.settings.settings().get(["webcam","flipH"]),
             'flipV':octoprint.settings.settings().get(["webcam","flipV"]),
             'rotate90':octoprint.settings.settings().get(["webcam","rotate90"]),

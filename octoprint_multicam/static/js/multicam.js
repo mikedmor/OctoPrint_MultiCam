@@ -11,8 +11,6 @@ $(function() {
 
         self.enabled_buttons = ko.observableArray();
 
-        self.multicam_selected = ko.observable('');
-
         self.onBeforeBinding = function() {
             self.multicam_profiles(self.settings.settings.plugins.multicam.multicam_profiles());
         };

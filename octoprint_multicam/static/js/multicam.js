@@ -89,7 +89,10 @@ $(function() {
             self.settings.webcam_flipV(ko.toJS(profile).flipV);
             self.settings.webcam_rotate90(ko.toJS(profile).rotate90);
             // Force reload of webcam URL with new parameters
+            let selected = OctoPrint.coreui.selectedTab;
+            OctoPrint.coreui.selectedTab = "#control";
             self.control._enableWebcam();
+            OctoPrint.coreui.selectedTab = selected;
             // Update buttons
             ko.utils.arrayForEach(self.multicam_profiles(), function (item) {
                 if(profile===item) {

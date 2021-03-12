@@ -23,6 +23,14 @@ As new plugins are discovered that causes issues with MultiCam, they will be lis
 ![Setting Preview](Octoprint_MultiCam_Settings.png)
 
 ## Support my work
-Programming is not only my job, but also something I enjoy doing in my spare time. If you enjoy my work, or received support from me, please consider sending me a donation so i may continue working on projects in my spare time. Thank you
+Programming is not only my job, but also something I enjoy doing in my spare time. If you enjoy my work, or received support from me, please consider dropping a donation to my paypal, alternative i also accept Cryptocurrency!
 
 [![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=K3LCC3QY2LSE8)
+
+UnstoppableDomain: **mikedmor.crypto**
+
+BTC: **bc1q567uzwg03he35m58tljzr30cy6mg9z52d899t4**
+
+ETH: **0xf3Af4e5889ac3D5f605FC42C90476996051De2Fe**
+
+LTC: **LgWgxnwLbmi7nuvn5Lt4g7KKZLpPHjxdZL**

@@ -81,6 +81,16 @@ class MultiCamPlugin(octoprint.plugin.StartupPlugin,
             )
         )
 
+    ##~~ Exposed as helper
+    def get_webcams(self):
+        data = []
+        for profile in enumerate(self._settings.get(['multicam_profiles'])):
+            #if index==0:
+            #    data.push({'name': 'Default', 'stream_url': self._settings.global_get(["webcam","stream"]), 'snapshot_url': self._settings.global_get(["webcam", "snapshot"])})
+            #else:
+           data.append({'name': profile['name'], 'stream': profile['URL'], 'snapshot': profile['snapshot'],'streamRatio': profile['streamRatio'],'flipH':profile['flipH'],'flipV':profile['flipV'],'rotate90':profile['rotate90']})
+        return data
+
 __plugin_name__ = "MultiCam"
 __plugin_pythoncompat__ = ">=2.7,<4"
 

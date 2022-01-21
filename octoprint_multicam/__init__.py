@@ -60,6 +60,20 @@ class MultiCamPlugin(octoprint.plugin.StartupPlugin,
             dict(type="generic", template="multicam.jinja2", custom_bindings=True)
         ]
 
+
+    ##~~ Exposed as helper
+    def get_webcam_profiles(self):
+        data = []
+        for index, profile in enumerate(self._settings.get(['multicam_profiles'])):
+            data.append({'name': profile['name'],
+                        'stream': profile['URL'],
+                        'snapshot': profile['snapshot'],
+                        'streamRatio': profile['streamRatio'],
+                        'flipH': profile['flipH'],
+                        'flipV': profile['flipV'],
+                        'rotate90': profile['rotate90']})
+        return data
+
     ##~~ Softwareupdate hook
     def get_version(self):
         return self._plugin_version
@@ -87,6 +101,10 @@ __plugin_pythoncompat__ = ">=2.7,<4"
 def __plugin_load__():
     global __plugin_implementation__
     __plugin_implementation__ = MultiCamPlugin()
+
+    global __plugin_helpers__
+    __plugin_helpers__ = dict(get_webcam_profiles=__plugin_implementation__.get_webcam_profiles)
+
 
     global __plugin_hooks__
     __plugin_hooks__ = {

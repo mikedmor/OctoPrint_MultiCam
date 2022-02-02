@@ -1,15 +1,47 @@
 $(function() {
     function MultiCamViewModel(parameters) {
-        var self = this;
 
-        var camViewPort = $('#webcam_image');
+        let self = this;
 
         self.settings = parameters[0];
         self.control = parameters[1];
 
         self.multicam_profiles = ko.observableArray();
-
         self.enabled_buttons = ko.observableArray();
+
+        self.selectedPreviewProfileIndex = ko.observable();
+        self.selectedPreviewProfileIndex.subscribe(function () {
+            self.updatePreviewSettings();
+        });
+
+        self.previewWebCamSettings = {
+            streamUrl: ko.observable(undefined),
+            webcam_rotate90: ko.observable(undefined),
+            webcam_flipH: ko.observable(undefined),
+            webcam_flipV: ko.observable(undefined),
+            webcamRatioClass: ko.observable(undefined)
+        };
+
+        self.updatePreviewSettings = function(selectedProfileIndex){
+            if (selectedProfileIndex){
+                self.selectedPreviewProfileIndex(selectedProfileIndex());
+            }
+            // copy current selected profile data to preview webcam settings
+            let selectedProfile = self.settings.settings.plugins.multicam.multicam_profiles()[self.selectedPreviewProfileIndex()];
+            if (selectedProfile){
+                self.previewWebCamSettings.streamUrl(selectedProfile.URL());
+                self.previewWebCamSettings.webcam_rotate90(selectedProfile.rotate90());
+                self.previewWebCamSettings.webcam_flipH(selectedProfile.flipH());
+                self.previewWebCamSettings.webcam_flipV(selectedProfile.flipV());
+                if (selectedProfile.streamRatio() == "4:3") {
+                    self.previewWebCamSettings.webcamRatioClass("ratio43");
+                } else {
+                    self.previewWebCamSettings.webcamRatioClass("ratio169");
+                }
+                // reload stream
+                self.loadWebCamStream();
+            }
+        };
 
         self.onBeforeBinding = function() {
             self.multicam_profiles(self.settings.settings.plugins.multicam.multicam_profiles());
@@ -17,7 +49,9 @@ $(function() {
 
         self.onSettingsShown = function() {
             // Force default webcam in settings to avoid confusion
-            self.loadWebcam(self.multicam_profiles()[0]);
+            let preSelectedProfile = 0;
+            self.selectedPreviewProfileIndex(preSelectedProfile);
+            self.loadWebcam(self.multicam_profiles()[preSelectedProfile]);
         };
 
         self.onSettingsBeforeSave = function() {
@@ -48,10 +82,10 @@ $(function() {
                     item.rotate90($('#settings-webcamRotate90').is(':checked'));
                 }
             });
-            /** To be deleted 
+            /** To be deleted
              *  Not sure why it was there, but it was causing bugs with multiple times configuration editing
-             *  Fixed by the direct use of self.settings.settings.plugins.multicam.multicam_profiles() 
-             *     instead of self.multicam_profiles())  
+             *  Fixed by the direct use of self.settings.settings.plugins.multicam.multicam_profiles()
+             *     instead of self.multicam_profiles())
             //console.log("Multicam_profiles:", self.multicam_profiles());
             //self.settings.settings.plugins.multicam.multicam_profiles(self.multicam_profiles.slice(0));
             //self.onAfterTabChange();
@@ -64,8 +98,8 @@ $(function() {
 
         self.addMultiCamProfile = function() {
             self.settings.settings.plugins.multicam.multicam_profiles.push({
-                name: ko.observable('Webcam '+self.multicam_profiles().length), 
-                URL: ko.observable('http://'), 
+                name: ko.observable('Webcam '+self.multicam_profiles().length),
+                URL: ko.observable('http://'),
                 snapshot: ko.observable('http://'),
                 streamRatio: ko.observable(''),
                 flipH: ko.observable(false),
@@ -102,6 +136,18 @@ $(function() {
                 }
             });
         };
+
+        self.loadWebCamStream = function(){
+            let streamUrl = self.previewWebCamSettings.streamUrl();
+            console.error("loadinng from " + streamUrl);
+            // if (snapshotUrl == null || streamUrl == null || snapshotUrl.length == 0 || streamUrl.length == 0) {
+            if (streamUrl == null ||  streamUrl.length == 0) {
+                alert("Camera-Error: Please make sure that stream-url is configured in your camera-settings")
+                return
+            }
+            // update the new stream-image
+            $("#multicam-videoStream").attr("src", self.previewWebCamSettings.streamUrl());
+        }
 
         self.onAfterBinding = function() {
             var camControl = $('#camControl');

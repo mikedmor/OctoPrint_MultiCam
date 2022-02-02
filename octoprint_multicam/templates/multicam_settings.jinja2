@@ -12,37 +12,61 @@
     </div>
     <div data-bind="foreach: settings.settings.plugins.multicam.multicam_profiles">
         <div class="row-fluid" style="margin-bottom: 5px">
-            <div class="span3">
+            <div class="span1">
+                    <input style="padding: 4px; margin: 0px;" type="radio" class="span12 text-right" data-bind="checked: $root.selectedPreviewProfileIndex, checkedValue: $index" >
+            </div>
+
+            <div class="span2" style="margin-left">
                 <input type="text" class="span12 text-right" data-bind="value: name">
             </div>
-            <div class="input-append span4">
-                <input type="text" class="span12 text-right" data-bind="value: URL, enable: $index()!==0, attr: { 'title': $index()!==0 ? 'URL of stream' : 'Edit this field in the Webcam & Timelapse tab (Applies after Save)' }">
+            <div class="input-append span2">
+                <input type="text" class="span12 text-right" data-bind="value: URL, enable: $index()!==0, attr: { 'title': $index()!==0 ? 'URL of stream' : 'Edit this field in the Webcam & Timelapse tab (Applies after Save)' },
+                                                                        event: {change: function(){$root.updatePreviewSettings($index);}}">
             </div>
-            <!--
-            <div class="input-append span4">
+
+            <div class="input-append span2">
                 <input type="text" class="span12 text-right" data-bind="value: snapshot, enable: $index()!==0, attr: { 'title': $index()!==0 ? 'URL of snapshot' : 'Edit this field in the Webcam & Timelapse tab (Applies after Save)' }">
             </div>
-            -->
-            <div class="span1">
-                <select style="width: 100%" data-bind="options: $parent.settings.webcam_available_ratios, value: streamRatio, enable: $index()!==0, attr: { 'title': $index()!==0 ? 'Stream ratio' : 'Edit this field in the Webcam & Timelapse tab (Applies after Save)' }"></select>
+
+            <div class="span1" >
+                <select style="width: 120%" data-bind="options: $parent.settings.webcam_available_ratios, value: streamRatio, enable: $index()!==0, attr: { 'title': $index()!==0 ? 'Stream ratio' : 'Edit this field in the Webcam & Timelapse tab (Applies after Save)' },
+                                                       event: {change: function(){$root.updatePreviewSettings($index);}}"></select>
             </div>
             <div class="span1">
-                <input style="padding: 4px; margin: 0px;" type="checkbox" class="span12 text-right" data-bind="checked: flipH, enable: $index()!==0, attr: { 'title': $index()!==0 ? 'Flip Horizontally' : 'Edit this field in the Webcam & Timelapse tab (Applies after Save)' }">
+                <input style="padding: 4px; margin: 0px;" type="checkbox" class="span12 text-right" data-bind="checked: flipH, enable: $index()!==0, attr: { 'title': $index()!==0 ? 'Flip Horizontally' : 'Edit this field in the Webcam & Timelapse tab (Applies after Save)' },
+                                                                                                               event: {change: function(){$root.updatePreviewSettings($index);}}">
             </div>
             <div class="span1">
-                <input style="padding: 4px; margin: 0px;" type="checkbox" class="span12 text-right" data-bind="checked: flipV, enable: $index()!==0, attr: { 'title': $index()!==0 ? 'Flip Vertically' : 'Edit this field in the Webcam & Timelapse tab (Applies after Save)' }">
+                <input style="padding: 4px; margin: 0px;" type="checkbox" class="span12 text-right" data-bind="checked: flipV, enable: $index()!==0, attr: { 'title': $index()!==0 ? 'Flip Vertically' : 'Edit this field in the Webcam & Timelapse tab (Applies after Save)' },
+                                                                                                               event: {change: function(){$root.updatePreviewSettings($index);}}">
             </div>
             <div class="span1">
-                <input style="padding: 4px; margin: 0px;" type="checkbox" class="span12 text-right" data-bind="checked: rotate90, enable: $index()!==0, attr: { 'title': $index()!==0 ? 'Rotate 90' : 'Edit this field in the Webcam & Timelapse tab (Applies after Save)' }">
+                <input style="padding: 4px; margin: 0px;" type="checkbox" class="span12 text-right" data-bind="checked: rotate90, enable: $index()!==0, attr: { 'title': $index()!==0 ? 'Rotate 90' : 'Edit this field in the Webcam & Timelapse tab (Applies after Save)' },
+                                                                                        event: {change: function(){$root.updatePreviewSettings($index);}}">
             </div>
-            <div class="span1">
+            <div class="span1" >
                 <button title="Remove Webcam" class="btn btn-danger" data-bind="click: $parent.removeMultiCamProfile, enable: $index()!==0, attr: { 'title': $index()!==0 ? 'Remove Webcam' : 'Default Webcam cannot be removed!' }"><i class="fa fa-trash-o"></i></button>
             </div>
         </div>
+
+
     </div>
     <div class="row-fluid">
         <div class="offset10 span2">
             <button title="Add Webcam" class="btn btn-primary" data-bind="click: addMultiCamProfile"><i class="fa fa-plus"></i></button>
+        </div>
+    </div>
+    <div class="row-fluid">
+        <div class="span12">
+            <div>Streaming from: <b><span data-bind="text:previewWebCamSettings.streamUrl"></span></b></div>
+            <div id="webcam_container">
+                <div id="webcam_rotator" data-bind="css: { webcam_rotated: previewWebCamSettings.webcam_rotate90(),
+                                                            webcam_unrotated: !previewWebCamSettings.webcam_rotate90()  }">
+                    <div class="webcam_fixed_ratio" style="padding-bottom:0px" data-bind="css: previewWebCamSettings.webcamRatioClass">
+                        <img id="multicam-videoStream" data-bind="css: { flipH: previewWebCamSettings.webcam_flipH(), flipV: previewWebCamSettings.webcam_flipV() }"  >
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </form>

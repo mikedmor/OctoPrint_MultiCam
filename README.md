@@ -1,7 +1,7 @@
 # OctoPrint MultiCam
-Extents the Control tab to include a webcam section with buttons that you can configure in the settings to switch between multiple webcam feeds.
+Extends the Control tab to include a webcam section with buttons that you can configure in the settings to switch between multiple webcam feeds.
 
-Future updates will include the more options to show different types of streams, as well as the abilitly to show more than one stream at a time.
+Future updates will include more options to show different types of streams, as well as the abilitly to show more than one stream at a time.
 
 ## Setup
 Install via the bundled [Plugin Manager](https://github.com/foosel/OctoPrint/wiki/Plugin:-Plugin-Manager)
@@ -9,10 +9,10 @@ or manually using this URL:
 
     https://github.com/mikedmor/OctoPrint_MultiCam/archive/master.zip
 
-It is recommended to setup a second RPi (potentially with [MotionEyeOS](https://github.com/ccrisan/motioneyeos)) to setup webcams from. Attaching more than one webcam to your octoprint device could result in high proccess use causing issues with your prints. You may also have to invest in a usb hub to power your webcams as RPi's tend to have low voltage issues when they are plugged in directly to the RPi. [This Link](https://elinux.org/RPi_Powered_USB_Hubs) has a good list of USB hubs that are support by Raspberry.
+It is recommended to setup a second RPi (potentially with [MotionEyeOS](https://github.com/ccrisan/motioneyeos)) to setup webcams from. Attaching more than one webcam to your octoprint device could result in high proccess use causing issues with your prints. You may also have to invest in a usb hub to power your webcams as RPi's tend to have low voltage issues when they are plugged in directly to the RPi. [This Link](https://elinux.org/RPi_Powered_USB_Hubs) has a good list of USB hubs that are supported by Raspberry.
 
 ## Known Incompatible Plugins
-As new plugins are discovered that causes issues with MultiCam, they will be listed below. Please disable, or uninstall these plugins or you may experience some issues. Thank you
+As new plugins are discovered that cause issues with MultiCam, they will be listed below. Please disable, or uninstall these plugins or you may experience some issues. Thank you
 
  * WebcamTab - MultiCam bind to the Control Tab, WebcamTab moves your webcam to another tab, breaking a few things. This may be fixed in the future if there seems to be enough support to warrent it.
 

@@ -5,8 +5,8 @@ import requests
 
 import octoprint.plugin
 import octoprint.settings
-from octoprint.schema.webcam import RatioEnum, Webcam, WebcamCompatibility
-from octoprint.webcams import WebcamNotAbleToTakeSnapshotException, get_webcams
+from octoprint.schema.webcam import Webcam, WebcamCompatibility
+from octoprint.webcams import WebcamNotAbleToTakeSnapshotException
 
 
 class MultiCamPlugin(octoprint.plugin.StartupPlugin,
@@ -35,19 +35,19 @@ class MultiCamPlugin(octoprint.plugin.StartupPlugin,
     def get_settings_version(self):
         return 3
 
-    def on_settings_migrate(self, target, current=None):
+    def on_settings_migrate(self, target, current):
         if current is None or current < self.get_settings_version():
             self._logger.debug("Settings Migration Needed! Resetting to defaults!")
             profiles = self._settings.get(['multicam_profiles'])
             # Migrate to 2
-            if current < 2:
+            if current is not None and current < 2:
                 for profile in profiles:
                     profile['snapshot'] = octoprint.settings.settings().get(["webcam","snapshot"])
                     profile['flipH'] = octoprint.settings.settings().get(["webcam","flipH"])
                     profile['flipV'] = octoprint.settings.settings().get(["webcam","flipV"])
                     profile['rotate90'] = octoprint.settings.settings().get(["webcam","rotate90"])
             # Migrate to 3
-            if current < 3:
+            if current is not None and current < 3:
                 for profile in profiles:
                     profile['streamRatio'] = octoprint.settings.settings().get(["webcam","streamRatio"])
             # If script migration is up to date we migrate, else we reset to default
@@ -68,8 +68,8 @@ class MultiCamPlugin(octoprint.plugin.StartupPlugin,
             'rotate90':octoprint.settings.settings().get(["webcam","rotate90"]),
             'isButtonEnabled':'true'}])
     
-    def get_sorting_key(self, context):
-        return None
+    # def get_sorting_key(self, context):
+    #     return None
 
     def get_template_configs(self):
         webcams = self.get_webcam_configurations()
@@ -85,7 +85,7 @@ class MultiCamPlugin(octoprint.plugin.StartupPlugin,
     # ~~ WebcamProviderPlugin API
     
     def get_webcam_configurations(self):
-        profiles = enumerate(self._settings.get(['multicam_profiles']))
+        profiles = self._settings.get(['multicam_profiles'])
 
         def profile_to_webcam(profile):
             flipH = profile.get("flipH", None) or False
@@ -96,8 +96,8 @@ class MultiCamPlugin(octoprint.plugin.StartupPlugin,
             streamRatio = profile.get("streamRatio", None) or "4:3"
             canSnapshot = snapshot != "" and snapshot is not None
             name = profile.get("name", None) or "default"
-                               
-            return Webcam(
+
+            webcam = Webcam(
                 name="multicam/%s" % name,
                 displayName=name,
                 flipH=flipH,
@@ -122,19 +122,21 @@ class MultiCamPlugin(octoprint.plugin.StartupPlugin,
                     cacheBuster=self.cacheBuster,
                 ),
             )
+            self._logger.debug(f"Webcam: {webcam}")
+            return webcam
 
-        return list(map(profile_to_webcam, profiles))
+        return [profile_to_webcam(profile) for profile in profiles]
 
     def take_webcam_snapshot(self, name):
-        webcam = next(webcam for webcam in self.get_webcam_configurations if webcam.name == name)
+        webcam = next((webcam for webcam in self.get_webcam_configurations() if webcam.name == name), None)
         if webcam is None:
-            raise WebcamNotAbleToTakeSnapshotException(self._webcam_name)
+            raise WebcamNotAbleToTakeSnapshotException(name)
 
         snapshot_url = webcam.snapshot_url
         can_snapshot = snapshot_url is not None and snapshot_url != "http://" and snapshot_url != ""
 
         if not can_snapshot:
-            raise WebcamNotAbleToTakeSnapshotException(self._webcam_name)
+            raise WebcamNotAbleToTakeSnapshotException(name)
 
         with self._capture_mutex:
             self._logger.debug(f"Capturing image from {snapshot_url}")
@@ -174,10 +176,6 @@ __plugin_pythoncompat__ = ">=2.7,<4"
 def __plugin_load__():
     global __plugin_implementation__
     __plugin_implementation__ = MultiCamPlugin()
-
-    global __plugin_helpers__
-    __plugin_helpers__ = dict(get_webcam_profiles=__plugin_implementation__.get_webcam_profiles)
-
 
     global __plugin_hooks__
     __plugin_hooks__ = {

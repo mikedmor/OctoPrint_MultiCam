@@ -20,28 +20,28 @@
                 <input type="text" class="span12 text-right" data-bind="value: name">
             </div>
             <div class="input-append span2">
-                <input type="text" class="span12 text-right" data-bind="value: URL, enable: $index()!==0, attr: { 'title': $index()!==0 ? 'URL of stream' : 'Edit this field in the Webcam & Timelapse tab (Applies after Save)' },
+                <input type="text" class="span12 text-right" data-bind="value: URL, enable: $index()!==0, attr: { 'title': $index()!==0 ? 'URL of stream' : 'Edit this field in the Classic Webcam tab (Applies after Save)' },
                                                                         event: {change: function(){$root.updatePreviewSettings($index);}}">
             </div>
 
             <div class="input-append span2">
-                <input type="text" class="span12 text-right" data-bind="value: snapshot, enable: $index()!==0, attr: { 'title': $index()!==0 ? 'URL of snapshot' : 'Edit this field in the Webcam & Timelapse tab (Applies after Save)' }">
+                <input type="text" class="span12 text-right" data-bind="value: snapshot, enable: $index()!==0, attr: { 'title': $index()!==0 ? 'URL of snapshot' : 'Edit this field in the Classic Webcam tab (Applies after Save)' }">
             </div>
 
             <div class="span1" >
-                <select style="width: 120%" data-bind="options: $parent.settings.webcam_available_ratios, value: streamRatio, enable: $index()!==0, attr: { 'title': $index()!==0 ? 'Stream ratio' : 'Edit this field in the Webcam & Timelapse tab (Applies after Save)' },
+                <select style="width: 120%" data-bind="options: $parent.available_ratios, value: streamRatio, enable: $index()!==0, attr: { 'title': $index()!==0 ? 'Stream ratio' : 'Edit this field in the Classic Webcam tab (Applies after Save)' },
                                                        event: {change: function(){$root.updatePreviewSettings($index);}}"></select>
             </div>
             <div class="span1">
-                <input style="padding: 4px; margin: 0px;" type="checkbox" class="span12 text-right" data-bind="checked: flipH, enable: $index()!==0, attr: { 'title': $index()!==0 ? 'Flip Horizontally' : 'Edit this field in the Webcam & Timelapse tab (Applies after Save)' },
+                <input style="padding: 4px; margin: 0px;" type="checkbox" class="span12 text-right" data-bind="checked: flipH, enable: $index()!==0, attr: { 'title': $index()!==0 ? 'Flip Horizontally' : 'Edit this field in the Classic Webcam tab (Applies after Save)' },
                                                                                                                event: {change: function(){$root.updatePreviewSettings($index);}}">
             </div>
             <div class="span1">
-                <input style="padding: 4px; margin: 0px;" type="checkbox" class="span12 text-right" data-bind="checked: flipV, enable: $index()!==0, attr: { 'title': $index()!==0 ? 'Flip Vertically' : 'Edit this field in the Webcam & Timelapse tab (Applies after Save)' },
+                <input style="padding: 4px; margin: 0px;" type="checkbox" class="span12 text-right" data-bind="checked: flipV, enable: $index()!==0, attr: { 'title': $index()!==0 ? 'Flip Vertically' : 'Edit this field in the Classic Webcam tab (Applies after Save)' },
                                                                                                                event: {change: function(){$root.updatePreviewSettings($index);}}">
             </div>
             <div class="span1">
-                <input style="padding: 4px; margin: 0px;" type="checkbox" class="span12 text-right" data-bind="checked: rotate90, enable: $index()!==0, attr: { 'title': $index()!==0 ? 'Rotate 90' : 'Edit this field in the Webcam & Timelapse tab (Applies after Save)' },
+                <input style="padding: 4px; margin: 0px;" type="checkbox" class="span12 text-right" data-bind="checked: rotate90, enable: $index()!==0, attr: { 'title': $index()!==0 ? 'Rotate 90' : 'Edit this field in the Classic Webcam tab (Applies after Save)' },
                                                                                         event: {change: function(){$root.updatePreviewSettings($index);}}">
             </div>
             <div class="span1" >

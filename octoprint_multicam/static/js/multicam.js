@@ -50,6 +50,7 @@ $(function () {
 
         self.onBeforeBinding = function () {
             self.multicam_profiles(self.settings.settings.plugins.multicam.multicam_profiles());
+            self.available_ratios = ["16:9", "4:3"];
         };
 
         self.onSettingsShown = function () {
@@ -120,7 +121,7 @@ $(function () {
             self.multicam_profiles(self.settings.settings.plugins.multicam.multicam_profiles());
         };
 
-        self.loadWebcam = function (profile, event) {
+        // self.loadWebcam = function (profile, event) {
             // // Set webcam observables to selected webcam
             // self.settings.webcam_streamUrl(ko.toJS(profile).URL);
             // self.settings.webcam_snapshotUrl(ko.toJS(profile).snapshot);
@@ -141,7 +142,7 @@ $(function () {
             //         item.isButtonEnabled(true);
             //     }
             // });
-        };
+        // };
 
         self.loadWebCamStream = function () {
             // let streamUrl = self.previewWebCamSettings.streamUrl();
@@ -165,12 +166,12 @@ $(function () {
         };
 
         self.unloadWebcam = function (webcam) {
-            console.log("DEBUGG Unloading webcam: ", webcam[0].id, "=>", webcam[1])
+            console.log("DEBUGG Unloading webcam: ", webcam[0], "=>", webcam[1])
 
         };
 
         self.loadWebcam = function (webcam) {
-            console.log("DEBUGG Loading webcam: ", webcam[0].id, "=>", webcam[1])
+            console.log("DEBUGG Loading webcam: ", webcam[0], "=>", webcam[1])
         };
 
         self.onAfterBinding = function () {

@@ -1,13 +1,27 @@
 # coding=utf-8
 from __future__ import absolute_import
+
+import requests
+
 import octoprint.plugin
 import octoprint.settings
+from octoprint.schema.webcam import RatioEnum, Webcam, WebcamCompatibility
+from octoprint.webcams import WebcamNotAbleToTakeSnapshotException, get_webcams
+
 
 class MultiCamPlugin(octoprint.plugin.StartupPlugin,
                       octoprint.plugin.TemplatePlugin,
                       octoprint.plugin.SettingsPlugin,
                       octoprint.plugin.AssetPlugin,
+                      octoprint.plugin.WebcamProviderPlugin,
                       octoprint.plugin.ReloadNeedingPlugin):
+
+    def __init__(self):
+        self.streamTimeout = 15
+        self.snapshotTimeout = 15
+        self.cacheBuster = True
+        self.snapshotSslValidation = True
+        self.webRtcServers = []
 
     def get_assets(self):
         return dict(
@@ -53,26 +67,85 @@ class MultiCamPlugin(octoprint.plugin.StartupPlugin,
             'flipV':octoprint.settings.settings().get(["webcam","flipV"]),
             'rotate90':octoprint.settings.settings().get(["webcam","rotate90"]),
             'isButtonEnabled':'true'}])
+    
+    def get_sorting_key(self, context):
+        return None
 
     def get_template_configs(self):
-        return [
-            dict(type="settings", custom_bindings=True),
-            dict(type="generic", template="multicam.jinja2", custom_bindings=True)
-        ]
+        webcams = self.get_webcam_configurations()
+        
+        def webcam_to_template(webcam):
+            return dict(type="webcam", template="multicam.jinja2", custom_bindings=True)
+    
+        settings_templates = [dict(type="settings", template="multicam_settings.jinja2", custom_bindings=True)]
+        webcam_templates = list(map(webcam_to_template, list(webcams)))
 
+        return settings_templates + webcam_templates
+    
+    # ~~ WebcamProviderPlugin API
+    
+    def get_webcam_configurations(self):
+        profiles = enumerate(self._settings.get(['multicam_profiles']))
 
-    ##~~ Exposed as helper
-    def get_webcam_profiles(self):
-        data = []
-        for index, profile in enumerate(self._settings.get(['multicam_profiles'])):
-            data.append({'name': profile['name'],
-                        'stream': profile['URL'],
-                        'snapshot': profile['snapshot'],
-                        'streamRatio': profile['streamRatio'],
-                        'flipH': profile['flipH'],
-                        'flipV': profile['flipV'],
-                        'rotate90': profile['rotate90']})
-        return data
+        def profile_to_webcam(profile):
+            flipH = profile.get("flipH", None) or False
+            flipV = profile.get("flipV", None) or False
+            rotate90 = profile.get("rotate90", None) or False
+            snapshot = profile.get("snapshot", None)
+            stream = profile.get("URL", None) or ""
+            streamRatio = profile.get("streamRatio", None) or "4:3"
+            canSnapshot = snapshot != "" and snapshot is not None
+            name = profile.get("name", None) or "default"
+                               
+            return Webcam(
+                name="multicam/%s" % name,
+                displayName=name,
+                flipH=flipH,
+                flipV=flipV,
+                rotate90=rotate90,
+                snapshotDisplay=snapshot,
+                canSnapshot=canSnapshot,
+                compat=WebcamCompatibility(
+                    stream=stream,
+                    streamTimeout=self.streamTimeout,
+                    streamRatio=streamRatio,
+                    cacheBuster=self.cacheBuster,
+                    streamWebrtcIceServers=self.webRtcServers,
+                    snapshot=snapshot,
+                    snapshotTimeout=self.snapshotTimeout,
+                    snapshotSslValidation=self.snapshotSslValidation,
+                ),
+                extras=dict(
+                    stream=stream,
+                    streamTimeout=self.streamTimeout,
+                    streamRatio=streamRatio,
+                    cacheBuster=self.cacheBuster,
+                ),
+            )
+
+        return list(map(profile_to_webcam, profiles))
+
+    def take_webcam_snapshot(self, name):
+        webcam = next(webcam for webcam in self.get_webcam_configurations if webcam.name == name)
+        if webcam is None:
+            raise WebcamNotAbleToTakeSnapshotException(self._webcam_name)
+
+        snapshot_url = webcam.snapshot_url
+        can_snapshot = snapshot_url is not None and snapshot_url != "http://" and snapshot_url != ""
+
+        if not can_snapshot:
+            raise WebcamNotAbleToTakeSnapshotException(self._webcam_name)
+
+        with self._capture_mutex:
+            self._logger.debug(f"Capturing image from {snapshot_url}")
+            r = requests.get(
+                snapshot_url,
+                stream=True,
+                timeout=self.snapshotTimeout,
+                verify=self.snapshotSslValidation,
+            )
+            r.raise_for_status()
+            return r.iter_content(chunk_size=1024)
 
     ##~~ Softwareupdate hook
     def get_version(self):

@@ -1,5 +1,5 @@
 $(function () {
-    function MultiCamViewModel(parameters) {
+    function MultiCamSettingsViewModel(parameters) {
 
 
         console.log("DEBUGGG init!")
@@ -7,12 +7,11 @@ $(function () {
 
         let self = this;
 
-        self.settings = parameters[0];
-        self.control = parameters[1];
+        self.loginState = parameters[0];
+        self.settings = parameters[1];
         self.webcams = []
 
         self.multicam_profiles = ko.observableArray();
-        self.enabled_buttons = ko.observableArray();
 
         self.selectedPreviewProfileIndex = ko.observable();
         self.selectedPreviewProfileIndex.subscribe(function () {
@@ -57,7 +56,7 @@ $(function () {
             // Force default webcam in settings to avoid confusion
             let preSelectedProfile = 0;
             self.selectedPreviewProfileIndex(preSelectedProfile);
-            self.loadWebcam(self.multicam_profiles()[preSelectedProfile]);
+            //self.loadWebcam(self.multicam_profiles()[preSelectedProfile]);
         };
 
         self.onSettingsBeforeSave = function () {
@@ -121,81 +120,40 @@ $(function () {
             self.multicam_profiles(self.settings.settings.plugins.multicam.multicam_profiles());
         };
 
-        // self.loadWebcam = function (profile, event) {
-            // // Set webcam observables to selected webcam
-            // self.settings.webcam_streamUrl(ko.toJS(profile).URL);
-            // self.settings.webcam_snapshotUrl(ko.toJS(profile).snapshot);
-            // self.settings.webcam_streamRatio(ko.toJS(profile).streamRatio);
-            // self.settings.webcam_flipH(ko.toJS(profile).flipH);
-            // self.settings.webcam_flipV(ko.toJS(profile).flipV);
-            // self.settings.webcam_rotate90(ko.toJS(profile).rotate90);
-            // // Force reload of webcam URL with new parameters
-            // let selected = OctoPrint.coreui.selectedTab;
-            // OctoPrint.coreui.selectedTab = "#control";
-            // self.control._enableWebcam();
-            // OctoPrint.coreui.selectedTab = selected;
-            // // Update buttons
-            // ko.utils.arrayForEach(self.multicam_profiles(), function (item) {
-            //     if(profile===item) {
-            //         item.isButtonEnabled(false);
-            //     } else {
-            //         item.isButtonEnabled(true);
-            //     }
-            // });
-        // };
-
         self.loadWebCamStream = function () {
-            // let streamUrl = self.previewWebCamSettings.streamUrl();
-            // console.error("loadinng from " + streamUrl);
-            // // if (snapshotUrl == null || streamUrl == null || snapshotUrl.length == 0 || streamUrl.length == 0) {
-            // if (streamUrl == null ||  streamUrl.length == 0) {
-            //     alert("Camera-Error: Please make sure that stream-url is configured in your camera-settings")
-            //     return
-            // }
-            // // update the new stream-image
-            // $("#multicam-videoStream").attr("src", self.previewWebCamSettings.streamUrl());
-        }
-
-        self.onWebcamVisibilityChange = function (_) {
-            console.log("DEBUGG Webcam visibility change")
-            const visible = self.webcams.find((webcam) => webcam[0].classList.contains("active"));
-            const invisible = self.webcams.filter((webcam) => !webcam[0].classList.contains("active"));
-
-            invisible.forEach((webcam) => this.unloadWebcam(webcam))
-            this.loadWebcam(visible)
-        };
-
-        self.unloadWebcam = function (webcam) {
-            console.log("DEBUGG Unloading webcam: ", webcam[0], "=>", webcam[1])
-
-        };
-
-        self.loadWebcam = function (webcam) {
-            console.log("DEBUGG Loading webcam: ", webcam[0], "=>", webcam[1])
+            let streamUrl = self.previewWebCamSettings.streamUrl();
+            console.error("loadinng from " + streamUrl);
+            // if (snapshotUrl == null || streamUrl == null || snapshotUrl.length == 0 || streamUrl.length == 0) {
+            if (streamUrl == null ||  streamUrl.length == 0) {
+                alert("Camera-Error: Please make sure that stream-url is configured in your camera-settings")
+                return
+            }
+            // update the new stream-image
+            $("#multicam-videoStream").attr("src", self.previewWebCamSettings.streamUrl());
         };
 
         self.onAfterBinding = function () {
-            let webcams = ko.toJS(self.settings.settings.plugins.multicam.multicam_profiles)
-            self.surfaces = []
+            // let webcams = ko.toJS(self.settings.settings.plugins.multicam.multicam_profiles)
+            // self.surfaces = []
 
-            for (const child of document.getElementById("webcam-group").children) {
-                if (child.id.startsWith("webcam_plugin_multicam")) {
-                    // We can use this surface, take next webcam and bind
-                    const webcam = webcams.shift()
-                    self.webcams.push([child, webcam.name])
+            // for (const child of document.getElementById("webcam-group").children) {
+            //     if (child.id.startsWith("webcam_plugin_multicam")) {
+            //         // We can use this surface, take next webcam and bind
+            //         const webcam = webcams.shift()
+            //         self.webcams.push([child, webcam.name])
 
-                    // Show name in side bar
-                    document.getElementById(child.id + "_link").getElementsByTagName("a")[0].innerHTML = webcam.name
-                }
-            }
-            console.log("DEBUGGG after bind!")
+            //         // Show name in side bar
+            //         document.getElementById(child.id + "_link").getElementsByTagName("a")[0].innerHTML = webcam.name
+            //     }
+            // }
+            // console.log("DEBUGGG after bind!")
         };
 
     }
 
-    OCTOPRINT_VIEWMODELS.push([
-        MultiCamViewModel,
-        ["settingsViewModel", "controlViewModel"],
-        ["#settings_plugin_multicam_form", "#camControl"]
-    ]);
+    OCTOPRINT_VIEWMODELS.push({
+        construct: MultiCamSettingsViewModel,
+        dependencies: ["loginStateViewModel", "settingsViewModel"],
+        elements: ["#settings_plugin_multicam_form"]
+    });
 });

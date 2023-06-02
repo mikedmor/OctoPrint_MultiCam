@@ -25,12 +25,16 @@ class MultiCamPlugin(octoprint.plugin.StartupPlugin,
 
     def get_assets(self):
         return dict(
-            js=["js/multicam.js"],
+            js=[
+                "js/multicam_webcam.js",
+                "js/multicam_settings.js"
+            ],
             css=["css/multicam.css"]
         )
 
     def on_after_startup(self):
         self._logger.info("MultiCam Loaded! (more: %s)" % self._settings.get(["multicam_profiles"]))
+        # TODO: Need to disable the ClassicWebcam Plugin as this plugin will manage that functionality
 
     def get_settings_version(self):
         return 3
@@ -75,7 +79,7 @@ class MultiCamPlugin(octoprint.plugin.StartupPlugin,
         webcams = self.get_webcam_configurations()
         
         def webcam_to_template(webcam):
-            return dict(type="webcam", template="multicam.jinja2", custom_bindings=True)
+            return dict(type="webcam", template="multicam_webcam.jinja2", custom_bindings=True)
     
         settings_templates = [dict(type="settings", template="multicam_settings.jinja2", custom_bindings=True)]
         webcam_templates = list(map(webcam_to_template, list(webcams)))

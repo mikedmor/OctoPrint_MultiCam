@@ -1,9 +1,6 @@
 $(function () {
     function MultiCamViewModel(parameters) {
-
-
-        console.log("DEBUGGG init!")
-
+        console.log("DEBUGGG init WebcamView!")
 
         let self = this;
 
@@ -23,15 +20,17 @@ $(function () {
             webcam_rotate90: ko.observable(undefined),
             webcam_flipH: ko.observable(undefined),
             webcam_flipV: ko.observable(undefined),
-            webcamRatioClass: ko.observable(undefined)
+            webcamRatioClass: ko.observable(undefined),
+            webcamLoaded: ko.observable(false),
+            webcamError: ko.observable(false),
         };
 
         self.onBeforeBinding = function () {
-            self.multicam_profiles(self.settings.settings.plugins.multicam.multicam_profiles());
+            self.multicam_profiles(self.settings.multicam_profiles())
         };
 
         self.onEventSettingsUpdated = function (payload) {
-            self.multicam_profiles(self.settings.settings.plugins.multicam.multicam_profiles());
+            self.multicam_profiles(self.settings.multicam_profiles())
         };
 
         // self.loadWebcam = function (profile, event) {
@@ -58,7 +57,7 @@ $(function () {
         // };
 
         self.onWebcamVisibilityChange = function (_) {
-            console.log("DEBUGG Webcam visibility change")
+            console.log("DEBUGG Webcam visibility change",self.webcams)
             const visible = self.webcams.find((webcam) => webcam[0].classList.contains("active"));
             const invisible = self.webcams.filter((webcam) => !webcam[0].classList.contains("active"));
 
@@ -66,23 +65,46 @@ $(function () {
             this.loadWebcam(visible)
         };
 
+        self.onWebcamError = function (webcam) {
+            console.log("DEBUGG Webcam error",webcam)
+            self.WebCamSettings.webcamError(true)
+            self.WebCamSettings.webcamLoaded(false)
+        }
+
         self.unloadWebcam = function (webcam) {
-            console.log("DEBUGG Unloading webcam: ", webcam[0], "=>", webcam[1])
+            console.log("DEBUGG Unloading webcam",webcam)
+            self.WebCamSettings.webcamLoaded(false)
+            self.WebCamSettings.webcamError(false)
         };
 
         self.loadWebcam = function (webcam) {
-            console.log("DEBUGG Loading webcam: ", webcam[0], "=>", webcam[1])
+            if(webcam){
+                self.WebCamSettings.streamUrl(webcam[2])
+                console.log("DEBUGG Loading webcam: ", webcam)
+                var webcamImage = $(webcam[0]).find("#webcam_image")
+
+                console.log("DEBUGG Loading webcam: ", webcamImage)
+
+                if(webcamImage.length){
+                    webcamImage.attr("src", webcam[2])
+                    self.WebCamSettings.webcamLoaded(true)
+                }else{
+                    self.onWebcamError(webcam);
+                }
+            }else{
+                self.onWebcamError(webcam);
+            }
         };
 
         self.onAfterBinding = function () {
-            let webcams = ko.toJS(self.settings.settings.plugins.multicam.multicam_profiles)
+            let webcams = ko.toJS(self.settings.multicam_profiles)
             self.surfaces = []
 
             for (const child of document.getElementById("webcam-group").children) {
                 if (child.id.startsWith("webcam_plugin_multicam")) {
                     // We can use this surface, take next webcam and bind
                     const webcam = webcams.shift()
-                    self.webcams.push([child, webcam.name])
+                    self.webcams.push([child, webcam.name, webcam.URL])
 
                     // Show name in side bar
                     document.getElementById(child.id + "_link").getElementsByTagName("a")[0].innerHTML = webcam.name
@@ -95,7 +117,7 @@ $(function () {
 
     OCTOPRINT_VIEWMODELS.push({
         construct: MultiCamViewModel,
-        dependencies: ["loginStateViewModel", "MultiCamSettingsViewModel"],
+        dependencies: ["loginStateViewModel", "multiCamSettingsViewModel"],
         elements: ["#multicam_container"]
     });
 });

@@ -1,9 +1,6 @@
 $(function () {
     function MultiCamSettingsViewModel(parameters) {
-
-
-        console.log("DEBUGGG init!")
-
+        console.log("DEBUGGG init SettingsView!")
 
         let self = this;
 
@@ -11,6 +8,7 @@ $(function () {
         self.settings = parameters[1];
         self.webcams = []
 
+        self.isClassicWebcamEnabled = ko.observable(true)
         self.multicam_profiles = ko.observableArray();
 
         self.selectedPreviewProfileIndex = ko.observable();
@@ -61,32 +59,32 @@ $(function () {
 
         self.onSettingsBeforeSave = function () {
             // Update multicam profile for default webcam
-            ko.utils.arrayForEach(self.settings.settings.plugins.multicam.multicam_profiles(), function (item, index) {
-                if (index == 0 && item.URL() != $('#settings-webcamStreamUrl').val()) {
-                    console.log("Changes Detected in Webcam settings : URL");
-                    item.URL($('#settings-webcamStreamUrl').val());
-                }
-                if (index == 0 && item.snapshot() != $('#settings-webcamSnapshotUrl').val()) {
-                    console.log("Changes Detected in Webcam settings : Snapshot URL");
-                    item.snapshot($('#settings-webcamSnapshotUrl').val());
-                }
-                if (index == 0 && item.streamRatio() != $('#settings-webcamStreamRatio').val()) {
-                    console.log("Changes Detected in Webcam settings : stream ratio");
-                    item.streamRatio($('#settings-webcamStreamRatio').val());
-                }
-                if (index == 0 && item.flipH() != $('#settings-webcamFlipH').is(':checked')) {
-                    console.log("Changes Detected in Webcam settings : FlipH");
-                    item.flipH($('#settings-webcamFlipH').is(':checked'));
-                }
-                if (index == 0 && item.flipV() != $('#settings-webcamFlipV').is(':checked')) {
-                    console.log("Changes Detected in Webcam settings : FlipV");
-                    item.flipV($('#settings-webcamFlipV').is(':checked'));
-                }
-                if (index == 0 && item.rotate90() != $('#settings-webcamRotate90').is(':checked')) {
-                    console.log("Changes Detected in Webcam settings : Rotate90");
-                    item.rotate90($('#settings-webcamRotate90').is(':checked'));
-                }
-            });
+            // ko.utils.arrayForEach(self.settings.settings.plugins.multicam.multicam_profiles(), function (item, index) {
+            //     if (index == 0 && item.URL() != $('#settings-webcamStreamUrl').val()) {
+            //         console.log("Changes Detected in Webcam settings : URL");
+            //         item.URL($('#settings-webcamStreamUrl').val());
+            //     }
+            //     if (index == 0 && item.snapshot() != $('#settings-webcamSnapshotUrl').val()) {
+            //         console.log("Changes Detected in Webcam settings : Snapshot URL");
+            //         item.snapshot($('#settings-webcamSnapshotUrl').val());
+            //     }
+            //     if (index == 0 && item.streamRatio() != $('#settings-webcamStreamRatio').val()) {
+            //         console.log("Changes Detected in Webcam settings : stream ratio");
+            //         item.streamRatio($('#settings-webcamStreamRatio').val());
+            //     }
+            //     if (index == 0 && item.flipH() != $('#settings-webcamFlipH').is(':checked')) {
+            //         console.log("Changes Detected in Webcam settings : FlipH");
+            //         item.flipH($('#settings-webcamFlipH').is(':checked'));
+            //     }
+            //     if (index == 0 && item.flipV() != $('#settings-webcamFlipV').is(':checked')) {
+            //         console.log("Changes Detected in Webcam settings : FlipV");
+            //         item.flipV($('#settings-webcamFlipV').is(':checked'));
+            //     }
+            //     if (index == 0 && item.rotate90() != $('#settings-webcamRotate90').is(':checked')) {
+            //         console.log("Changes Detected in Webcam settings : Rotate90");
+            //         item.rotate90($('#settings-webcamRotate90').is(':checked'));
+            //     }
+            // });
             /** To be deleted
              *  Not sure why it was there, but it was causing bugs with multiple times configuration editing
              *  Fixed by the direct use of self.settings.settings.plugins.multicam.multicam_profiles()
@@ -133,20 +131,17 @@ $(function () {
         };
 
         self.onAfterBinding = function () {
-            // let webcams = ko.toJS(self.settings.settings.plugins.multicam.multicam_profiles)
-            // self.surfaces = []
+            $.ajax({
+                url: "/plugin/multicam/classicwebcamstatus",
+                type: "GET",
+                success: function(response) {
+                    self.isClassicWebcamEnabled = response.enabled;
+                    console.log("DEBUGGG isClassicWebcamEnabled",self.isClassicWebcamEnabled)
+                    
+                    //TODO: Inform the user that the classic webcam is enabled and they should consider disabling it
 
-            // for (const child of document.getElementById("webcam-group").children) {
-            //     if (child.id.startsWith("webcam_plugin_multicam")) {
-            //         // We can use this surface, take next webcam and bind
-            //         const webcam = webcams.shift()
-            //         self.webcams.push([child, webcam.name])
-
-            //         // Show name in side bar
-            //         document.getElementById(child.id + "_link").getElementsByTagName("a")[0].innerHTML = webcam.name
-            //     }
-            // }
-            // console.log("DEBUGGG after bind!")
+                }
+            });
         };
 
     }
@@ -154,6 +149,6 @@ $(function () {
     OCTOPRINT_VIEWMODELS.push({
         construct: MultiCamSettingsViewModel,
         dependencies: ["loginStateViewModel", "settingsViewModel"],
-        elements: ["#settings_plugin_multicam_form"]
+        elements: ["#settings_plugin_multicam"]
     });
 });

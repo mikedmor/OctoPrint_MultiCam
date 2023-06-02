@@ -2,6 +2,7 @@
 from __future__ import absolute_import
 
 import requests
+import flask
 
 import octoprint.plugin
 import octoprint.settings
@@ -11,6 +12,7 @@ from octoprint.webcams import WebcamNotAbleToTakeSnapshotException, get_webcams
 
 class MultiCamPlugin(octoprint.plugin.StartupPlugin,
                       octoprint.plugin.TemplatePlugin,
+                      octoprint.plugin.BlueprintPlugin,
                       octoprint.plugin.SettingsPlugin,
                       octoprint.plugin.AssetPlugin,
                       octoprint.plugin.WebcamProviderPlugin,
@@ -24,13 +26,21 @@ class MultiCamPlugin(octoprint.plugin.StartupPlugin,
         self.webRtcServers = []
 
     def get_assets(self):
-        return dict(
-            js=[
+        return {
+            "js":[
                 "js/multicam_webcam.js",
                 "js/multicam_settings.js"
             ],
-            css=["css/multicam.css"]
-        )
+            "css":["css/multicam.css"]
+        }
+    
+    @octoprint.plugin.BlueprintPlugin.route("/classicwebcamstatus", methods=["GET"])
+    def get_classic_webcam_status(self):
+        return flask.jsonify(enabled=self.isClassicWebcamEnabled())
+    
+    def isClassicWebcamEnabled(self):
+        plugin = self._plugin_manager.get_plugin("classicwebcam")
+        return plugin is not None
 
     def on_after_startup(self):
         self._logger.info("MultiCam Loaded! (more: %s)" % self._settings.get(["multicam_profiles"]))
@@ -77,11 +87,12 @@ class MultiCamPlugin(octoprint.plugin.StartupPlugin,
 
     def get_template_configs(self):
         webcams = self.get_webcam_configurations()
+
+        settings_templates = [dict(type="settings", template="multicam_settings.jinja2", custom_bindings=True)]
         
         def webcam_to_template(webcam):
             return dict(type="webcam", template="multicam_webcam.jinja2", custom_bindings=True)
     
-        settings_templates = [dict(type="settings", template="multicam_settings.jinja2", custom_bindings=True)]
         webcam_templates = list(map(webcam_to_template, list(webcams)))
 
         return settings_templates + webcam_templates
@@ -128,7 +139,7 @@ class MultiCamPlugin(octoprint.plugin.StartupPlugin,
             )
             self._logger.debug(f"Webcam: {webcam}")
             return webcam
-
+        
         return [profile_to_webcam(profile) for profile in profiles]
 
     def take_webcam_snapshot(self, name):

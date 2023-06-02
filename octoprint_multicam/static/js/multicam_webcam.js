@@ -33,29 +33,6 @@ $(function () {
             self.onWebcamVisibilityChange();
         };
 
-        // self.loadWebcam = function (profile, event) {
-            // // Set webcam observables to selected webcam
-            // self.settings.webcam_streamUrl(ko.toJS(profile).URL);
-            // self.settings.webcam_snapshotUrl(ko.toJS(profile).snapshot);
-            // self.settings.webcam_streamRatio(ko.toJS(profile).streamRatio);
-            // self.settings.webcam_flipH(ko.toJS(profile).flipH);
-            // self.settings.webcam_flipV(ko.toJS(profile).flipV);
-            // self.settings.webcam_rotate90(ko.toJS(profile).rotate90);
-            // // Force reload of webcam URL with new parameters
-            // let selected = OctoPrint.coreui.selectedTab;
-            // OctoPrint.coreui.selectedTab = "#control";
-            // self.control._enableWebcam();
-            // OctoPrint.coreui.selectedTab = selected;
-            // // Update buttons
-            // ko.utils.arrayForEach(self.multicam_profiles(), function (item) {
-            //     if(profile===item) {
-            //         item.isButtonEnabled(false);
-            //     } else {
-            //         item.isButtonEnabled(true);
-            //     }
-            // });
-        // };
-
         self.onWebcamVisibilityChange = function (_) {
             console.log("DEBUGG Webcam visibility change",self.webcams)
             const visible = self.webcams.find((webcam) => webcam[0].classList.contains("active"));
@@ -81,7 +58,7 @@ $(function () {
 
         self.unloadWebcam = function (webcam) {
             console.log("DEBUGG Unloading webcam",webcam)
-            var webcamImage = $(webcam[0]).find("#webcam_image")
+            var webcamImage = $(webcam[0]).find(".webcam_image")
             webcamImage.attr("src", "")
             self.WebCamSettings.streamUrl("")
             self.WebCamSettings.webcamLoaded(false)
@@ -97,7 +74,7 @@ $(function () {
                 self.WebCamSettings.webcamRatioClass(webcam[1].streamRatio)
 
                 console.log("DEBUGG Loading webcam: ", webcam)
-                var webcamImage = $(webcam[0]).find("#webcam_image")
+                var webcamImage = $(webcam[0]).find(".webcam_image")
 
                 if(webcamImage.length){
                     webcamImage.attr("src", webcam[1].URL)
@@ -137,6 +114,6 @@ $(function () {
     OCTOPRINT_VIEWMODELS.push({
         construct: MultiCamViewModel,
         dependencies: ["loginStateViewModel", "multiCamSettingsViewModel"],
-        elements: ["#multicam_container"]
+        elements: ['.multicam_container']
     });
 });

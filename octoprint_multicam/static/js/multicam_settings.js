@@ -128,7 +128,7 @@ $(function () {
                 return
             }
             // update the new stream-image
-            $("#multicam-videoStream").attr("src", self.previewWebCamSettings.streamUrl());
+            $("#webcam_image_preview").attr("src", self.previewWebCamSettings.streamUrl());
         };
 
         self.onAfterBinding = function () {

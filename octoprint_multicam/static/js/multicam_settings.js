@@ -24,7 +24,10 @@ $(function () {
             webcamRatioClass: ko.observable(undefined)
         };
 
+        self.reloadChangesMade = ko.observable(false);
+
         self.updatePreviewSettings = function (selectedProfileIndex) {
+            console.log("DEBUGGG updatePreviewSettings - selectedProfileIndex", selectedProfileIndex)
             if (selectedProfileIndex) {
                 self.selectedPreviewProfileIndex(selectedProfileIndex());
             }
@@ -41,7 +44,7 @@ $(function () {
                     self.previewWebCamSettings.webcamRatioClass("ratio169");
                 }
                 // reload stream
-                self.loadWebCamStream();
+                self.loadWebCamPreviewStream();
             }
         };
 
@@ -51,45 +54,48 @@ $(function () {
         };
 
         self.onSettingsShown = function () {
+            self.multicam_profiles(self.settings.settings.plugins.multicam.multicam_profiles());
             // Force default webcam in settings to avoid confusion
             let preSelectedProfile = 0;
             self.selectedPreviewProfileIndex(preSelectedProfile);
-            //self.loadWebcam(self.multicam_profiles()[preSelectedProfile]);
         };
 
-        self.onSettingsBeforeSave = function () {
+        // self.onSettingsBeforeSave = function () {
 
-        };
+        // };
 
         self.onEventSettingsUpdated = function (payload) {
+            console.log("DEBUGGG onEventSettingsUpdated - Settings", payload);
             self.multicam_profiles(self.settings.settings.plugins.multicam.multicam_profiles());
 
-            new PNotify({
-                title: 'Restart required',
-                text: "The MultiCam plugin has been updated. Please restart OctoPrint to apply the changes.",
-                type: 'info',
-                hide: false,
-                buttons: {
-                    closer: false,
-                    sticker: false
-                },
-                confirm: {
-                    confirm: true,
-                    buttons: [{
-                        text: 'Restart now',
-                        addClass: 'btn-primary',
-                        click: function(notice) {
-                            OctoPrint.system.executeCommand("core", "restart")
-                            notice.remove();
-                        }
-                    }, {
-                        addClass: 'btn-danger',
-                        click: function(notice) {
-                            notice.remove();
-                        }
-                    }]
-                }
-            });
+            if (self.reloadChangesMade()) {
+                new PNotify({
+                    title: 'Restart required',
+                    text: "The MultiCam plugin has been updated. Please restart OctoPrint to apply the changes.",
+                    type: 'info',
+                    hide: false,
+                    buttons: {
+                        closer: false,
+                        sticker: false
+                    },
+                    confirm: {
+                        confirm: true,
+                        buttons: [{
+                            text: 'Restart now',
+                            addClass: 'btn-primary',
+                            click: function (notice) {
+                                OctoPrint.system.executeCommand("core", "restart")
+                                notice.remove();
+                            }
+                        }, {
+                            addClass: 'btn-danger',
+                            click: function (notice) {
+                                notice.remove();
+                            }
+                        }]
+                    }
+                });
+            }
         };
 
         self.addMultiCamProfile = function () {
@@ -104,18 +110,20 @@ $(function () {
                 isButtonEnabled: ko.observable(true)
             });
             self.multicam_profiles(self.settings.settings.plugins.multicam.multicam_profiles());
+            self.reloadChangesMade(true);
         };
 
         self.removeMultiCamProfile = function (profile) {
             self.settings.settings.plugins.multicam.multicam_profiles.remove(profile);
             self.multicam_profiles(self.settings.settings.plugins.multicam.multicam_profiles());
+            self.reloadChangesMade(true);
         };
 
-        self.loadWebCamStream = function () {
+        self.loadWebCamPreviewStream = function () {
             let streamUrl = self.previewWebCamSettings.streamUrl();
             console.log("loading from " + streamUrl);
             // if (snapshotUrl == null || streamUrl == null || snapshotUrl.length == 0 || streamUrl.length == 0) {
-            if (streamUrl == null ||  streamUrl.length == 0) {
+            if (streamUrl == null || streamUrl.length == 0) {
                 alert("Camera-Error: Please make sure that stream-url is configured in your camera-settings")
                 return
             }
@@ -127,10 +135,10 @@ $(function () {
             $.ajax({
                 url: "/plugin/multicam/classicwebcamstatus",
                 type: "GET",
-                success: function(response) {
+                success: function (response) {
                     self.isClassicWebcamEnabled = response.enabled;
-                    console.log("DEBUGGG isClassicWebcamEnabled",self.isClassicWebcamEnabled)
-                    
+                    console.log("DEBUGGG isClassicWebcamEnabled", self.isClassicWebcamEnabled)
+
                     //TODO: Inform the user that the classic webcam is enabled and they should consider disabling it
 
                 }

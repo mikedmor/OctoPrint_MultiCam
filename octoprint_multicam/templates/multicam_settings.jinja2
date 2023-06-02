@@ -20,7 +20,8 @@
             </div>
 
             <div class="span2" style="margin-left">
-                <input type="text" class="span12 text-right" data-bind="value: name">
+                <input type="text" class="span12 text-right" data-bind="value: name, 
+                                                                        event: {change: function(){$root.reloadChangesMade(true);}}">
             </div>
             <div class="input-append span2">
                 <input type="text" class="span12 text-right" data-bind="value: URL, attr: { 'title': 'URL of stream' },

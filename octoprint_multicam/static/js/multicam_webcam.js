@@ -11,9 +11,6 @@ $(function () {
         self.multicam_profiles = ko.observableArray();
 
         self.selectedProfileIndex = ko.observable();
-        self.selectedProfileIndex.subscribe(function () {
-            self.updateSettings();
-        });
 
         self.WebCamSettings = {
             streamUrl: ko.observable(undefined),
@@ -30,7 +27,10 @@ $(function () {
         };
 
         self.onEventSettingsUpdated = function (payload) {
+            console.log("DEBUGGG onEventSettingsUpdated - Webcam", payload)
             self.multicam_profiles(self.settings.multicam_profiles())
+            self.onAfterBinding();
+            self.onWebcamVisibilityChange();
         };
 
         // self.loadWebcam = function (profile, event) {
@@ -90,12 +90,17 @@ $(function () {
 
         self.loadWebcam = function (webcam) {
             if(webcam){
-                self.WebCamSettings.streamUrl(webcam[2])
+                self.WebCamSettings.streamUrl(webcam[1].URL)
+                self.WebCamSettings.webcam_rotate90(webcam[1].rotate90)
+                self.WebCamSettings.webcam_flipH(webcam[1].flipH)
+                self.WebCamSettings.webcam_flipV(webcam[1].flipV)
+                self.WebCamSettings.webcamRatioClass(webcam[1].streamRatio)
+
                 console.log("DEBUGG Loading webcam: ", webcam)
                 var webcamImage = $(webcam[0]).find("#webcam_image")
 
                 if(webcamImage.length){
-                    webcamImage.attr("src", webcam[2])
+                    webcamImage.attr("src", webcam[1].URL)
                     self.WebCamSettings.webcamLoaded(true)
                 }
                 else{
@@ -111,13 +116,14 @@ $(function () {
 
         self.onAfterBinding = function () {
             let webcams = ko.toJS(self.settings.multicam_profiles)
+            self.webcams = []
             self.surfaces = []
 
             for (const child of document.getElementById("webcam-group").children) {
                 if (child.id.startsWith("webcam_plugin_multicam")) {
                     // We can use this surface, take next webcam and bind
                     const webcam = webcams.shift()
-                    self.webcams.push([child, webcam.name, webcam.URL])
+                    self.webcams.push([child, webcam])
 
                     // Show name in side bar
                     document.getElementById(child.id + "_link").getElementsByTagName("a")[0].innerHTML = webcam.name

@@ -14,7 +14,7 @@
         <div id="webcam_rotator" data-bind="css: { webcam_rotated: WebCamSettings.webcam_rotate90(), webcam_unrotated: !WebCamSettings.webcam_rotate90() }">
             <div class="webcam_fixed_ratio" data-bind="css: WebCamSettings.webcamRatioClass">
                 <div class="webcam_fixed_ratio_inner">
-                    <img id="webcam_image" data-bind="css: { flipH: WebCamSettings.webcam_flipH(), flipV: WebCamSettings.webcam_flipV() }, visible: !WebCamSettings.webcamError()">
+                    <img id="webcam_image" data-bind="css: { flipH: WebCamSettings.webcam_flipH(), flipV: WebCamSettings.webcam_flipV() }, event: { load: onWebcamLoad, error: onWebcamError }, visible: !WebCamSettings.webcamError()">
                 </div>
             </div>
         </div>

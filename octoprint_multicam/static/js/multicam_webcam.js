@@ -65,14 +65,25 @@ $(function () {
             this.loadWebcam(visible)
         };
 
-        self.onWebcamError = function (webcam) {
-            console.log("DEBUGG Webcam error",webcam)
+        self.onWebcamError = function () {
+            console.log("DEBUGG Webcam error")
             self.WebCamSettings.webcamError(true)
             self.WebCamSettings.webcamLoaded(false)
         }
 
+        self.onWebcamLoad = function () {
+            if (self.WebCamSettings.webcamLoaded()) return;
+
+            console.log("DEBUGG Webcam load")
+            self.WebCamSettings.webcamError(false)
+            self.WebCamSettings.webcamLoaded(true)
+        }
+
         self.unloadWebcam = function (webcam) {
             console.log("DEBUGG Unloading webcam",webcam)
+            var webcamImage = $(webcam[0]).find("#webcam_image")
+            webcamImage.attr("src", "")
+            self.WebCamSettings.streamUrl("")
             self.WebCamSettings.webcamLoaded(false)
             self.WebCamSettings.webcamError(false)
         };
@@ -81,16 +92,20 @@ $(function () {
             if(webcam){
                 self.WebCamSettings.streamUrl(webcam[2])
                 console.log("DEBUGG Loading webcam: ", webcam)
-                var webcamImage = $(webcam[0]).find(".webcam_image")
+                var webcamImage = $(webcam[0]).find("#webcam_image")
 
                 if(webcamImage.length){
                     webcamImage.attr("src", webcam[2])
                     self.WebCamSettings.webcamLoaded(true)
-                }else{
-                    self.onWebcamError(webcam);
                 }
-            }else{
-                self.onWebcamError(webcam);
+                else{
+                    console.log("DEBUGG webcamImage not found")
+                    self.onWebcamError();
+                }
+            }
+            else{
+                console.log("DEBUGG webcam not found")
+                self.onWebcamError();
             }
         };
 

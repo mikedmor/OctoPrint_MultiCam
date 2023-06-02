@@ -8,6 +8,7 @@ import octoprint.plugin
 import octoprint.settings
 from octoprint.schema.webcam import RatioEnum, Webcam, WebcamCompatibility
 from octoprint.webcams import WebcamNotAbleToTakeSnapshotException, get_webcams
+from octoprint.events import Events
 
 
 class MultiCamPlugin(octoprint.plugin.StartupPlugin,
@@ -81,6 +82,20 @@ class MultiCamPlugin(octoprint.plugin.StartupPlugin,
             'flipV':octoprint.settings.settings().get(["webcam","flipV"]),
             'rotate90':octoprint.settings.settings().get(["webcam","rotate90"]),
             'isButtonEnabled':'true'}])
+    
+    def on_settings_save(self, data):
+        old_profiles = self._settings.get(["multicam_profiles"])
+
+        octoprint.plugin.SettingsPlugin.on_settings_save(self, data)
+
+        new_profiles = self._settings.get(["multicam_profiles"])
+        if old_profiles != new_profiles:
+            self._logger.info("profiles changed from {old_profiles} to {new_profiles}".format(**locals()))
+            flattened_profiles = []
+            for profiles in new_profiles:
+                flattened_profiles.append(profiles['name'])
+            self._settings.global_set(["name","URL","isButtonEnabled"],flattened_profiles)
+            self._plugin_manager.send_plugin_message(self._identifier, dict(reload=True))
     
     # def get_sorting_key(self, context):
     #     return None
@@ -182,6 +197,11 @@ class MultiCamPlugin(octoprint.plugin.StartupPlugin,
 
                 # update method: pip
                 pip="https://github.com/mikedmor/OctoPrint_MultiCam/archive/{target_version}.zip"
+            ),
+            events=dict(
+                on_event=[
+                    Events.PLUGIN_OCTOPRINTPLUGIN_RESTART_REQUIRED,
+                ]
             )
         )
 

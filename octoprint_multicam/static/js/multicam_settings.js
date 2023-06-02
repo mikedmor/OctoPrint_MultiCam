@@ -58,45 +58,38 @@ $(function () {
         };
 
         self.onSettingsBeforeSave = function () {
-            // Update multicam profile for default webcam
-            // ko.utils.arrayForEach(self.settings.settings.plugins.multicam.multicam_profiles(), function (item, index) {
-            //     if (index == 0 && item.URL() != $('#settings-webcamStreamUrl').val()) {
-            //         console.log("Changes Detected in Webcam settings : URL");
-            //         item.URL($('#settings-webcamStreamUrl').val());
-            //     }
-            //     if (index == 0 && item.snapshot() != $('#settings-webcamSnapshotUrl').val()) {
-            //         console.log("Changes Detected in Webcam settings : Snapshot URL");
-            //         item.snapshot($('#settings-webcamSnapshotUrl').val());
-            //     }
-            //     if (index == 0 && item.streamRatio() != $('#settings-webcamStreamRatio').val()) {
-            //         console.log("Changes Detected in Webcam settings : stream ratio");
-            //         item.streamRatio($('#settings-webcamStreamRatio').val());
-            //     }
-            //     if (index == 0 && item.flipH() != $('#settings-webcamFlipH').is(':checked')) {
-            //         console.log("Changes Detected in Webcam settings : FlipH");
-            //         item.flipH($('#settings-webcamFlipH').is(':checked'));
-            //     }
-            //     if (index == 0 && item.flipV() != $('#settings-webcamFlipV').is(':checked')) {
-            //         console.log("Changes Detected in Webcam settings : FlipV");
-            //         item.flipV($('#settings-webcamFlipV').is(':checked'));
-            //     }
-            //     if (index == 0 && item.rotate90() != $('#settings-webcamRotate90').is(':checked')) {
-            //         console.log("Changes Detected in Webcam settings : Rotate90");
-            //         item.rotate90($('#settings-webcamRotate90').is(':checked'));
-            //     }
-            // });
-            /** To be deleted
-             *  Not sure why it was there, but it was causing bugs with multiple times configuration editing
-             *  Fixed by the direct use of self.settings.settings.plugins.multicam.multicam_profiles()
-             *     instead of self.multicam_profiles())
-            //console.log("Multicam_profiles:", self.multicam_profiles());
-            //self.settings.settings.plugins.multicam.multicam_profiles(self.multicam_profiles.slice(0));
-            //self.onAfterTabChange();
-            */
+
         };
 
         self.onEventSettingsUpdated = function (payload) {
             self.multicam_profiles(self.settings.settings.plugins.multicam.multicam_profiles());
+
+            new PNotify({
+                title: 'Restart required',
+                text: "The MultiCam plugin has been updated. Please restart OctoPrint to apply the changes.",
+                type: 'info',
+                hide: false,
+                buttons: {
+                    closer: false,
+                    sticker: false
+                },
+                confirm: {
+                    confirm: true,
+                    buttons: [{
+                        text: 'Restart now',
+                        addClass: 'btn-primary',
+                        click: function(notice) {
+                            OctoPrint.system.executeCommand("core", "restart")
+                            notice.remove();
+                        }
+                    }, {
+                        addClass: 'btn-danger',
+                        click: function(notice) {
+                            notice.remove();
+                        }
+                    }]
+                }
+            });
         };
 
         self.addMultiCamProfile = function () {

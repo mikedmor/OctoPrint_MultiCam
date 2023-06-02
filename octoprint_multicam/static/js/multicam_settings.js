@@ -120,7 +120,7 @@ $(function () {
 
         self.loadWebCamStream = function () {
             let streamUrl = self.previewWebCamSettings.streamUrl();
-            console.error("loadinng from " + streamUrl);
+            console.log("loading from " + streamUrl);
             // if (snapshotUrl == null || streamUrl == null || snapshotUrl.length == 0 || streamUrl.length == 0) {
             if (streamUrl == null ||  streamUrl.length == 0) {
                 alert("Camera-Error: Please make sure that stream-url is configured in your camera-settings")

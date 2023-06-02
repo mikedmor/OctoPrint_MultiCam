@@ -81,9 +81,7 @@ $(function () {
             if(webcam){
                 self.WebCamSettings.streamUrl(webcam[2])
                 console.log("DEBUGG Loading webcam: ", webcam)
-                var webcamImage = $(webcam[0]).find("#webcam_image")
-
-                console.log("DEBUGG Loading webcam: ", webcamImage)
+                var webcamImage = $(webcam[0]).find(".webcam_image")
 
                 if(webcamImage.length){
                     webcamImage.attr("src", webcam[2])

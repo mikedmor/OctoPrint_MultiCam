@@ -29,7 +29,7 @@ class MultiCamPlugin(octoprint.plugin.StartupPlugin,
     def get_assets(self):
         return {
             "js":[
-                "js/multicam_webcam.js",
+                "js/multicam.js",
                 "js/multicam_settings.js"
             ],
             "css":["css/multicam.css"]

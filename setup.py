@@ -14,7 +14,7 @@ plugin_package = "octoprint_multicam"
 plugin_name = "OctoPrint-MultiCam"
 
 # The plugin's version. Can be overwritten within OctoPrint's internal data via __plugin_version__ in the plugin module
-plugin_version = "0.4.0RC1"
+plugin_version = "0.4.0rc1"
 
 # The plugin's description. Can be overwritten within OctoPrint's internal data via __plugin_description__ in the plugin
 # module

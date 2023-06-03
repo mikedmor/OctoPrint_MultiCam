@@ -194,6 +194,16 @@ class MultiCamPlugin(octoprint.plugin.StartupPlugin,
                 user="mikedmor",
                 repo="OctoPrint_MultiCam",
                 current=self._plugin_version,
+                stable_branch=dict(
+					name="Stable", branch="master", comittish=["master"]
+				),
+				prerelease_branches=[
+					dict(
+						name="Release Candidate",
+						branch="rc",
+						comittish=["rc", "master"],
+					)
+				],
 
                 # update method: pip
                 pip="https://github.com/mikedmor/OctoPrint_MultiCam/archive/{target_version}.zip"

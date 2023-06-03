@@ -195,14 +195,14 @@ class MultiCamPlugin(octoprint.plugin.StartupPlugin,
                 repo="OctoPrint_MultiCam",
                 current=self._plugin_version,
                 stable_branch=dict(
-                        name="Stable", branch="master", comittish=["master"]
+                    name="Stable", branch="master", comittish=["master"]
                 ),
                 prerelease_branches=[
-                        dict(
-                                name="Release Candidate",
-                                branch="rc",
-                                comittish=["rc", "master"],
-                        )
+                    dict(
+                        name="Release Candidate",
+                        branch="rc",
+                        comittish=["rc", "master"],
+                    )
                 ],
 
                 # update method: pip

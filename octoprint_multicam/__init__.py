@@ -207,11 +207,6 @@ class MultiCamPlugin(octoprint.plugin.StartupPlugin,
 
                 # update method: pip
                 pip="https://github.com/mikedmor/OctoPrint_MultiCam/archive/{target_version}.zip"
-            ),
-            events=dict(
-                on_event=[
-                    Events.PLUGIN_OCTOPRINTPLUGIN_RESTART_REQUIRED,
-                ]
             )
         )
 

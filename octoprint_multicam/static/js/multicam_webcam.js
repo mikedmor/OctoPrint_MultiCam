@@ -4,10 +4,29 @@ $(function () {
 
         let self = this;
         self.multicam = parameters[0];
+        self.control = parameters[1];
 
         self.onWebcamVisibilityChange = function (visible) {
-            //console.log("DEBUGGG Webcam visibility change",visible)
-            self.multicam.onChangeWebcam();
+            self.multicam.onChangeWebcam()
+            // TODO: The below is a better way of handling this, but currently _visibleWebcam does not work as intended
+            // Suggest: Octoprint to update onWebcamVisibilityChange callback to include a target
+            // Suggest2: Octoprint to update _visibleWebcam to be set before calling onWebcamVisibilityChange
+            
+            // Fix for when _visibleWebcam is not defined (general on first load)
+            // if(!self.control._visibleWebcam) {
+            //     console.log("DEBUGGG onWebcamVisibilityChange: _visibleWebcam is not defined, reloading all webcams", self.control._visibleWebcam)
+            //     self.multicam.onChangeWebcam()
+            //     return;
+            // }
+
+            // console.log("DEBUGGG onWebcamVisibilityChange: id: ", self.control._visibleWebcam.id)
+            // console.log("DEBUGGG onWebcamVisibilityChange: visible: ", visible)
+
+            // const webcam = self.multicam.webcams.find((webcam) => webcam[0].id == self.control._visibleWebcam.id)
+            
+            // if (visible) {
+            //     self.multicam.loadWebcam(webcam);
+            // }
         }
     }
 
@@ -33,7 +52,7 @@ $(function () {
 
     OCTOPRINT_VIEWMODELS.push({
         construct: MultiCamWebcamViewModel,
-        dependencies: ["multiCamViewModel"],
+        dependencies: ["multiCamViewModel", "controlViewModel"],
         elements: getWebcamInstances()
     });
 });

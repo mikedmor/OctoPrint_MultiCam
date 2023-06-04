@@ -81,11 +81,6 @@ $(function () {
         self.onChangeWebcam = function () {
             //console.log("DEBUGG Webcam visibility change",self.webcams)
             const visible = self.webcams.find((webcam) => webcam[0].classList.contains("active"));
-            const invisible = self.webcams.filter((webcam) => !webcam[0].classList.contains("active"));
-
-            invisible.forEach((webcam) => {
-                this.unloadWebcam(webcam);
-            });
         
             this.loadWebcam(visible);
         };
@@ -134,13 +129,21 @@ $(function () {
 
             //Remove the src of the webcam to unload it from the window
             webcamImage.attr("src", "")
-
-
-            self.WebCamSettings.webcamError(false)
-            self.WebCamSettings.webcamLoaded(false)
         };
 
+        self.unloadWebcams = function () {
+            self.webcams.forEach((webcam) => {
+                self.unloadWebcam(webcam);
+            });
+        }
+
         self.loadWebcam = function (webcam) {
+            self.WebCamSettings.webcamError(false)
+            self.WebCamSettings.webcamLoaded(false)
+
+            //Unload before loading the new webcam
+            self.unloadWebcams()
+
             if(webcam){
                 var webcamElement = $(webcam[0]);
                 var webcamImage = webcamElement.find(".webcam_image")
@@ -241,14 +244,8 @@ $(function () {
                     // Show name in side bar
                     let linkElement = $(document.getElementById(child.id + "_link").getElementsByTagName("a")[0]);
                     linkElement.html(webcam.name);
-                    // linkElement.off('click').on('click', function() {
-                    //     setTimeout(function() {
-                    //         self.onChangeWebcam();
-                    //     }, 100); // 100 milliseconds delay
-                    // });
                 }
             }
-            //console.log("DEBUGGG after bind!",webcams)
         };
 
         self._switchToMjpgWebcam = function (webcam) {

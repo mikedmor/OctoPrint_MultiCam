@@ -12,16 +12,63 @@ $(function () {
 
         self.WebCamSettings = {
             streamUrl: ko.observable(undefined),
+            streamUrlEscaped: ko.pureComputed(function () {
+                return encodeURI(self.WebCamSettings.streamUrl());
+            }),
+            webcamLoaded: ko.observable(false),
+            webcamStreamType: ko.pureComputed(function () {
+                try {
+                    return self.determineWebcamStreamType(self.WebCamSettings.streamUrlEscaped());
+                } catch (e) {
+                    console.error(e);
+                    self.WebCamSettings.webcamError(true);
+                    return "mjpg";
+                }
+            }),
+            webcamMjpgEnabled: ko.observable(false),
+            webcamWebRTCEnabled: ko.observable(false),
+            webcamHlsEnabled: ko.observable(false),
             webcam_rotate90: ko.observable(false),
             webcam_flipH: ko.observable(false),
             webcam_flipV: ko.observable(false),
             webcamRatioClass: ko.observable('ratio169'),
-            webcamLoaded: ko.observable(false),
             webcamError: ko.observable(false),
+            webcamMuted: ko.observable(false),
+            webRTCPeerConnection: ko.observable(null),
+            webcamElementHls: ko.observable(null),
+            webcamElementWebrtc: ko.observable(null)
         };
 
         self.onBeforeBinding = function () {
             self.multicam_profiles(self.settings.multicam_profiles())
+        };
+
+        self.syncWebcamElements = function (webcam) {
+            var webcamElement = $(webcam[0]);
+            self.WebCamSettings.webcamElementHls = webcamElement.find(".webcam_hls").first();
+            self.WebCamSettings.webcamElementWebrtc = webcamElement.find(".webcam_webrtc").first();
+        };
+
+        self._getActiveWebcamVideoElement = function () {
+            if (self.WebCamSettings.webcamWebRTCEnabled()) {
+                return self.WebCamSettings.webcamElementWebrtc;
+            } else {
+                return self.WebCamSettings.webcamElementHls;
+            }
+        };
+
+        self.launchWebcamPictureInPicture = function () {
+            self._getActiveWebcamVideoElement().requestPictureInPicture();
+        };
+
+        self.launchWebcamFullscreen = function () {
+            self._getActiveWebcamVideoElement().requestFullscreen();
+        };
+
+        self.toggleWebcamMute = function () {
+            self.WebCamSettings.webcamMuted(!self.WebCamSettings.webcamMuted());
+            self.WebCamSettings.webcamElementWebrtc.muted = self.WebCamSettings.webcamMuted();
+            self.WebCamSettings.webcamElementHls.muted = self.WebCamSettings.webcamMuted();
         };
 
         self.onEventSettingsUpdated = function (payload) {
@@ -54,6 +101,19 @@ $(function () {
             //console.log("DEBUGG Webcam load",webcam)
             self.WebCamSettings.webcamError(false)
             self.WebCamSettings.webcamLoaded(true)
+
+            self.syncWebcamElements(webcam);
+
+            var streamType = self.WebCamSettings.webcamStreamType();
+            if (streamType == "mjpg") {
+                self._switchToMjpgWebcam(webcam);
+            } else if (streamType == "hls") {
+                self._switchToHlsWebcam();
+            } else if (isWebRTCAvailable() && streamType == "webrtc") {
+                self._switchToWebRTCWebcam();
+            } else {
+                throw "Unknown stream type " + streamType;
+            }
         }
 
         self.unloadWebcam = function (webcam) {
@@ -111,6 +171,32 @@ $(function () {
             }
         };
 
+        self.determineWebcamStreamType = function (streamUrl) {
+            if (!streamUrl) {
+                throw "Empty streamUrl. Cannot determine stream type.";
+            }
+
+            var parsed = validateWebcamUrl(streamUrl);
+            if (!parsed) {
+                throw "Invalid streamUrl. Cannot determine stream type.";
+            }
+
+            if (parsed.protocol === "webrtc:" || parsed.protocol === "webrtcs:") {
+                return "webrtc";
+            }
+
+            var lastDotPosition = parsed.pathname.lastIndexOf(".");
+            if (lastDotPosition !== -1) {
+                var extension = parsed.pathname.substring(lastDotPosition + 1);
+                if (extension.toLowerCase() === "m3u8") {
+                    return "hls";
+                }
+            }
+
+            // By default, 'mjpg' is the stream type.
+            return "mjpg";
+        };
+
         self.onAfterBinding = function () {
             let webcams = ko.toJS(self.settings.multicam_profiles)
             self.webcams = []
@@ -133,6 +219,103 @@ $(function () {
                 }
             }
             //console.log("DEBUGGG after bind!",webcams)
+        };
+
+        self._switchToMjpgWebcam = function (webcam) {
+            var webcamElement = $(webcam[0]);
+            var webcamImage = webcamElement.find(".webcam_image")
+            var currentSrc = webcamImage.attr("src");
+
+            // safari bug doesn't release the mjpeg stream, so we just set it up the once
+            if (OctoPrint.coreui.browser.safari && currentSrc != undefined) {
+                return;
+            }
+
+            var newSrc = self.WebCamSettings.streamUrlEscaped();
+
+            if (currentSrc != newSrc) {
+                if (self.settings.cacheBuster()) {
+                    if (newSrc.lastIndexOf("?") > -1) {
+                        newSrc += "&";
+                    } else {
+                        newSrc += "?";
+                    }
+                    newSrc += new Date().getTime();
+                }
+
+                self.WebCamSettings.webcamLoaded(false);
+                self.WebCamSettings.webcamError(false);
+                webcamImage.attr("src", newSrc);
+
+                self.WebCamSettings.webcamHlsEnabled(false);
+                self.WebCamSettings.webcamMjpgEnabled(true);
+                self.WebCamSettings.webcamWebRTCEnabled(false);
+            }
+        };
+
+        self._switchToHlsWebcam = function () {
+            var video = self.WebCamSettings.webcamElementHls;
+            //video.onresize = self.WebCamSettings._updateVideoTagWebcamLayout;
+
+            // Ensure WebRTC is unloaded
+            if (self.WebCamSettings.webRTCPeerConnection != null) {
+                self.WebCamSettings.webRTCPeerConnection.close();
+                self.WebCamSettings.webRTCPeerConnection = null;
+            }
+
+            // Check for native playback options: https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/canPlayType
+            if (
+                video != null &&
+                typeof video.canPlayType != undefined &&
+                video.canPlayType("application/vnd.apple.mpegurl") == "probably"
+            ) {
+                video.src = self.streamUrlEscaped();
+            } else if (Hls.isSupported()) {
+                self.hls = new Hls();
+                self.hls.loadSource(self.streamUrlEscaped());
+                self.hls.attachMedia(video);
+            }
+
+            self.WebCamSettings.webcamMjpgEnabled(false);
+            self.WebCamSettings.webcamHlsEnabled(true);
+            self.WebCamSettings.webcamWebRTCEnabled(false);
+        };
+
+        self._switchToWebRTCWebcam = function () {
+            if (!isWebRTCAvailable()) {
+                return;
+            }
+            var video = self.WebCamSettings.webcamElementWebrtc;
+            //video.onresize = self.WebCamSettings._updateVideoTagWebcamLayout;
+
+            // Ensure HLS is unloaded
+            if (self.hls != null) {
+                self.WebCamSettings.webcamElementHls.src = null;
+                self.hls.destroy();
+                self.hls = null;
+            }
+
+            // Close any existing, disconnected connection
+            if (
+                self.WebCamSettings.webRTCPeerConnection != null &&
+                self.WebCamSettings.webRTCPeerConnection.connectionState != "connected"
+            ) {
+                self.WebCamSettings.webRTCPeerConnection.close();
+                self.WebCamSettings.webRTCPeerConnection = null;
+            }
+
+            // Open a new connection if necessary
+            if (self.WebCamSettings.webRTCPeerConnection == null) {
+                self.WebCamSettings.webRTCPeerConnection = startWebRTC(
+                    video,
+                    self.WebCamSettings.streamUrlEscaped(),
+                    self.settings.streamWebrtcIceServers()
+                );
+            }
+
+            self.WebCamSettings.webcamMjpgEnabled(false);
+            self.WebCamSettings.webcamHlsEnabled(false);
+            self.WebCamSettings.webcamWebRTCEnabled(true);
         };
 
     }

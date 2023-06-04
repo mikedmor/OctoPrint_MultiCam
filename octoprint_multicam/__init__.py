@@ -30,6 +30,7 @@ class MultiCamPlugin(octoprint.plugin.StartupPlugin,
         return {
             "js":[
                 "js/multicam.js",
+                "js/multicam_webcam.js",
                 "js/multicam_settings.js"
             ],
             "css":["css/multicam.css"]
@@ -103,7 +104,8 @@ class MultiCamPlugin(octoprint.plugin.StartupPlugin,
     def get_template_configs(self):
         webcams = self.get_webcam_configurations()
 
-        settings_templates = [dict(type="settings", template="multicam_settings.jinja2", custom_bindings=True)]
+        settings_templates = [dict(type="settings", template="multicam_settings.jinja2", custom_bindings=False)]
+        settings_templates = [dict(type="generic", template="multicam.jinja2", custom_bindings=False)]
         
         def webcam_to_template(webcam):
             return dict(type="webcam", template="multicam_webcam.jinja2", custom_bindings=True)

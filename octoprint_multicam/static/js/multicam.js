@@ -1,6 +1,6 @@
 $(function () {
     function MultiCamViewModel(parameters) {
-        console.log("DEBUGGG init WebcamView!")
+        //console.log("DEBUGGG init WebcamView!")
 
         let self = this;
 
@@ -10,14 +10,12 @@ $(function () {
 
         self.multicam_profiles = ko.observableArray();
 
-        self.selectedProfileIndex = ko.observable();
-
         self.WebCamSettings = {
             streamUrl: ko.observable(undefined),
-            webcam_rotate90: ko.observable(undefined),
-            webcam_flipH: ko.observable(undefined),
-            webcam_flipV: ko.observable(undefined),
-            webcamRatioClass: ko.observable(undefined),
+            webcam_rotate90: ko.observable(false),
+            webcam_flipH: ko.observable(false),
+            webcam_flipV: ko.observable(false),
+            webcamRatioClass: ko.observable('ratio169'),
             webcamLoaded: ko.observable(false),
             webcamError: ko.observable(false),
         };
@@ -27,14 +25,14 @@ $(function () {
         };
 
         self.onEventSettingsUpdated = function (payload) {
-            console.log("DEBUGGG onEventSettingsUpdated - Webcam", payload)
+            //console.log("DEBUGGG onEventSettingsUpdated - Webcam", payload)
             self.multicam_profiles(self.settings.multicam_profiles())
             self.onAfterBinding();
             self.onChangeWebcam();
         };
 
         self.onChangeWebcam = function () {
-            console.log("DEBUGG Webcam visibility change",self.webcams)
+            //console.log("DEBUGG Webcam visibility change",self.webcams)
             const visible = self.webcams.find((webcam) => webcam[0].classList.contains("active"));
             const invisible = self.webcams.filter((webcam) => !webcam[0].classList.contains("active"));
 
@@ -46,84 +44,44 @@ $(function () {
         };
 
         self.onWebcamError = function (webcam) {
-            console.log("DEBUGG Webcam error",webcam)
-            var webcamElement = $(webcam[0]);
-
-            var webcamNowebcam = webcamElement.find(".nowebcam")
-            var webcamRotator = webcamElement.find(".webcam_rotator")
-            var webcamError = webcamElement.find(".webcam_error")
-            var webcamCurrentURL = webcamElement.find(".current_url")
-            var webcamLoading = webcamElement.find(".webcam_loading")
-
-            webcamNowebcam.show()
-            webcamLoading.hide()
-            webcamRotator.hide()
-            webcamCurrentURL.html(webcam[1].URL)
-            webcamError.show()
+            //console.log("DEBUGG Webcam error",webcam)
+            self.WebCamSettings.webcamError(true)
+            self.WebCamSettings.webcamLoaded(false)
         }
 
         self.onWebcamLoad = function (webcam) {
             if (self.WebCamSettings.webcamLoaded()) return;
 
-            console.log("DEBUGG Webcam load",webcam)
-            var webcamElement = $(webcam[0]);
+            //console.log("DEBUGG Webcam load",webcam)
 
-            var webcamImage = webcamElement.find(".webcam_image")
-            var webcamNowebcam = webcamElement.find(".nowebcam")
-            var webcamRotator = webcamElement.find(".webcam_rotator")
-            var webcamFixedRatio = webcamElement.find(".webcam_fixed_ratio")
-            
-            webcamNowebcam.hide()
-            if(webcam[1].rotate90){
-                webcamRotator[0].classList.add('webcam_rotated')
-                webcamRotator[0].classList.remove('webcam_unrotated')
-            }else{
-                webcamRotator[0].classList.add('webcam_unrotated')
-                webcamRotator[0].classList.remove('webcam_rotated')
-            }
+            self.WebCamSettings.webcam_rotate90(webcam[1].rotate90)
             if(webcam[1].streamRatio === '16:9'){
-                webcamFixedRatio[0].classList.add('ratio169')
-                webcamFixedRatio[0].classList.remove('ratio43')
+                self.WebCamSettings.webcamRatioClass('ratio169')
             }else{
-                webcamFixedRatio[0].classList.add('ratio43')
-                webcamFixedRatio[0].classList.remove('ratio169')
+                self.WebCamSettings.webcamRatioClass('ratio43')
             }
-            if(webcam[1].flipH){
-                webcamImage[0].classList.add('flipH')
-            }else{
-                webcamImage[0].classList.remove('flipH')
-            }
-            if(webcam[1].flipV){
-                webcamImage[0].classList.add('flipV')
-            }else{
-                webcamImage[0].classList.remove('flipV')
-            }
-            webcamRotator.show()
+            self.WebCamSettings.webcam_flipH(webcam[1].flipH)
+            self.WebCamSettings.webcam_flipV(webcam[1].flipV)
+
+            self.WebCamSettings.webcamError(false)
+            self.WebCamSettings.webcamLoaded(true)
         }
 
         self.unloadWebcam = function (webcam) {
-            console.log("DEBUGG Unloading webcam",webcam)
+            //console.log("DEBUGG Unloading webcam",webcam)
             var webcamElement = $(webcam[0]);
-
             var webcamImage = webcamElement.find(".webcam_image")
-            var webcamCurrentURL = webcamElement.find(".current_url")
-            var webcamNowebcam = webcamElement.find(".nowebcam")
-            var webcamError = webcamElement.find(".webcam_error")
-            var webcamRotator = webcamElement.find(".webcam_rotator")
-            var webcamLoading = webcamElement.find(".webcam_loading")
 
             webcamImage.attr("src", "")
-            webcamCurrentURL.html("")
-            webcamNowebcam.show()
-            webcamError.hide()
-            webcamRotator.hide()
-            webcamLoading.show()
+
+            self.WebCamSettings.webcamError(false)
+            self.WebCamSettings.webcamLoaded(false)
         };
 
         self.loadWebcam = function (webcam) {
             if(webcam){
 
-                console.log("DEBUGG Loading webcam: ", webcam)
+                //console.log("DEBUGG Loading webcam: ", webcam)
                 var webcamElement = $(webcam[0]);
                 var webcamImage = webcamElement.find(".webcam_image")
 
@@ -138,6 +96,7 @@ $(function () {
                         webcamImage.off("load")
                         webcamImage.off("error")
                     })
+                    self.WebCamSettings.streamUrl(webcam[1].URL)
                     webcamImage.attr("src", webcam[1].URL)
                 }
                 else{
@@ -172,7 +131,7 @@ $(function () {
                     });
                 }
             }
-            console.log("DEBUGGG after bind!",webcams)
+            //console.log("DEBUGGG after bind!",webcams)
 
             //Fix for inital view load
             setTimeout(function() {
@@ -185,6 +144,6 @@ $(function () {
     OCTOPRINT_VIEWMODELS.push({
         construct: MultiCamViewModel,
         dependencies: ["loginStateViewModel", "multiCamSettingsViewModel"],
-        elements: ['.multicam_container']
+        elements: ['#multicam']
     });
 });

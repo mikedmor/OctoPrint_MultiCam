@@ -1,19 +1,19 @@
 <div class="multicam_container">
     <div class="webcam_img_container" tabindex="0">
-        <div class="nowebcam">
-            <div class="text webcam_loading">
+        <div class="nowebcam" data-bind="visible: !multicam.WebCamSettings.webcamLoaded()">
+            <div class="text webcam_loading" data-bind="visible: !multicam.WebCamSettings.webcamLoaded() && !multicam.WebCamSettings.webcamError()">
                 <p><strong>{{ _('Webcam stream loading...') }}</strong></p>
             </div>
-            <div class="text webcam_error" style="display: none;">
+            <div class="text webcam_error" data-bind="visible: !multicam.WebCamSettings.webcamLoaded() && multicam.WebCamSettings.webcamError()">
                 <p><strong>{{ _('Webcam stream not loaded') }}</strong></p>
                 <p><small>{{ _('It might not be configured correctly or require authentication. You can change the URL of the stream under "Settings" > "Classic Webcam" > "Stream URL". If you don\'t have a webcam you can also just disable webcam support there.') }}</small></p>
-                <p><small>{{ _('Currently configured stream URL') }}: <a target="_blank" rel="noreferrer" class="current_url"></a></small></p>
+                <p><small>{{ _('Currently configured stream URL') }}: <a target="_blank" rel="noreferrer" data-bind="attr: {href: multicam.WebCamSettings.streamUrl}, text: multicam.WebCamSettings.streamUrl"></a></small></p>
             </div>
         </div>
-        <div class="webcam_rotator" style="display: none;">
-            <div class="webcam_fixed_ratio">
+        <div class="webcam_rotator" data-bind="css: { webcam_rotated: multicam.WebCamSettings.webcam_rotate90(), webcam_unrotated: !multicam.WebCamSettings.webcam_rotate90() }">
+            <div class="webcam_fixed_ratio" data-bind="css: multicam.WebCamSettings.webcamRatioClass">
                 <div class="webcam_fixed_ratio_inner">
-                    <img class="webcam_image">
+                    <img class="webcam_image" data-bind="css: { flipH: multicam.WebCamSettings.webcam_flipH(), flipV: multicam.WebCamSettings.webcam_flipV() }, visible: multicam.WebCamSettings.webcamLoaded() && !multicam.WebCamSettings.webcamError()">
                 </div>
             </div>
         </div>

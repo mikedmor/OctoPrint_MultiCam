@@ -1,6 +1,6 @@
 $(function () {
     function MultiCamSettingsViewModel(parameters) {
-        console.log("DEBUGGG init SettingsView!")
+        //console.log("DEBUGGG init SettingsView!")
 
         let self = this;
 
@@ -29,7 +29,7 @@ $(function () {
         self.reloadChangesMade = ko.observable(false);
 
         self.updatePreviewSettings = function (selectedProfileIndex) {
-            console.log("DEBUGGG updatePreviewSettings - selectedProfileIndex", selectedProfileIndex)
+            //console.log("DEBUGGG updatePreviewSettings - selectedProfileIndex", selectedProfileIndex)
             if (selectedProfileIndex) {
                 self.selectedPreviewProfileIndex(selectedProfileIndex());
             }
@@ -67,7 +67,7 @@ $(function () {
         // };
 
         self.onEventSettingsUpdated = function (payload) {
-            console.log("DEBUGGG onEventSettingsUpdated - Settings", payload);
+            //console.log("DEBUGGG onEventSettingsUpdated - Settings", payload);
             self.multicam_profiles(self.settings.settings.plugins.multicam.multicam_profiles());
 
             if (self.reloadChangesMade()) {
@@ -125,7 +125,7 @@ $(function () {
             self.previewWebCamSettings.webcamLoaded(false);
             self.previewWebCamSettings.webcamError(false);
             let streamUrl = self.previewWebCamSettings.streamUrl();
-            console.log("loading from " + streamUrl);
+            //console.log("loading from " + streamUrl);
             // if (snapshotUrl == null || streamUrl == null || snapshotUrl.length == 0 || streamUrl.length == 0) {
             if (streamUrl == null || streamUrl.length == 0) {
                 alert("Camera-Error: Please make sure that stream-url is configured in your camera-settings")
@@ -133,14 +133,14 @@ $(function () {
             }
             // update the new stream-image
             $(".webcam_image_preview").on('load', function () {
-                console.log("DEBUGGG webcam_image_preview - loaded")
+                //console.log("DEBUGGG webcam_image_preview - loaded")
                 self.previewWebCamSettings.webcamLoaded(true);
                 self.previewWebCamSettings.webcamError(false);
                 $("#webcam_image_preview").off('load');
                 $("#webcam_image_preview").off('error');
             });
             $(".webcam_image_preview").on('error', function () {
-                console.log("DEBUGGG webcam_image_preview - error")
+                //console.log("DEBUGGG webcam_image_preview - error")
                 self.previewWebCamSettings.webcamLoaded(false);
                 self.previewWebCamSettings.webcamError(true);
                 $("#webcam_image_preview").off('load');
@@ -155,7 +155,7 @@ $(function () {
                 type: "GET",
                 success: function (response) {
                     self.isClassicWebcamEnabled = response.enabled;
-                    console.log("DEBUGGG isClassicWebcamEnabled", self.isClassicWebcamEnabled)
+                    //console.log("DEBUGGG isClassicWebcamEnabled", self.isClassicWebcamEnabled)
 
                     //TODO: Inform the user that the classic webcam is enabled and they should consider disabling it
 

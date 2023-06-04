@@ -1,9 +1,9 @@
 <div class="multicam_container">
 <div class="webcam_video_container" tabindex="0" data-bind="visible: multicam.WebCamSettings.webcamWebRTCEnabled() || multicam.WebCamSettings.webcamHlsEnabled(), css: { webcam_rotated: multicam.WebCamSettings.webcam_rotate90(), webcam_unrotated: !multicam.WebCamSettings.webcam_rotate90() }" style="display: none;">
         <div class="video-controls btn-group action-buttons">
-            <div class="btn btn-mini" data-bind="click: function(data, event) { $root.launchWebcamFullscreen() }"><i class="fas fa-expand"></i></div>
-            <div class="btn btn-mini" data-bind="visible: document.pictureInPictureEnabled, click: function(data, event) {  $root.launchWebcamPictureInPicture() }"><i class="fas fa-images"></i></div>
-            <div class="btn btn-mini" data-bind="click: function(data, event) { $root.toggleWebcamMute() }">
+            <div class="btn btn-mini" data-bind="click: function(data, event) { multicam.launchWebcamFullscreen() }"><i class="fas fa-expand"></i></div>
+            <div class="btn btn-mini" data-bind="visible: document.pictureInPictureEnabled, click: function(data, event) {  multicam.launchWebcamPictureInPicture() }"><i class="fas fa-images"></i></div>
+            <div class="btn btn-mini" data-bind="click: function(data, event) { multicam.toggleWebcamMute() }">
                 <!-- ko if: multicam.WebCamSettings.webcamMuted() -->
                 <i class="fas fa-volume-mute"></i>
                 <!-- /ko -->
@@ -21,7 +21,7 @@
             </div>
         </div>
     </div>
-    <div class="webcam_img_container" tabindex="0">
+    <div class="webcam_img_container" tabindex="0" data-bind="visible: multicam.WebCamSettings.webcamMjpgEnabled()">
         <div class="nowebcam" data-bind="visible: !multicam.WebCamSettings.webcamLoaded()">
             <div class="text webcam_loading" data-bind="visible: !multicam.WebCamSettings.webcamLoaded() && !multicam.WebCamSettings.webcamError()">
                 <p><strong>{{ _('Webcam stream loading...') }}</strong></p>

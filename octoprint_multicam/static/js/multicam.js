@@ -44,7 +44,7 @@ $(function () {
         };
 
         self.onWebcamError = function (webcam) {
-            //console.log("DEBUGG Webcam error",webcam)
+            console.error("ERROR loading webacm: ",webcam[1].URL)
             self.WebCamSettings.webcamError(true)
             self.WebCamSettings.webcamLoaded(false)
         }
@@ -72,6 +72,11 @@ $(function () {
             var webcamElement = $(webcam[0]);
             var webcamImage = webcamElement.find(".webcam_image")
 
+            //Turn off on handlers during unload
+            webcamImage.off("load")
+            webcamImage.off("error")
+
+            //Remove the src of the webcam to unload it from the window
             webcamImage.attr("src", "")
 
             self.WebCamSettings.webcamError(false)
@@ -80,8 +85,6 @@ $(function () {
 
         self.loadWebcam = function (webcam) {
             if(webcam){
-
-                //console.log("DEBUGG Loading webcam: ", webcam)
                 var webcamElement = $(webcam[0]);
                 var webcamImage = webcamElement.find(".webcam_image")
 
@@ -96,6 +99,7 @@ $(function () {
                         webcamImage.off("load")
                         webcamImage.off("error")
                     })
+                    console.log("Loading webcam: ", webcam[1].URL)
                     self.WebCamSettings.streamUrl(webcam[1].URL)
                     webcamImage.attr("src", webcam[1].URL)
                 }
@@ -124,19 +128,14 @@ $(function () {
                     // Show name in side bar
                     let linkElement = $(document.getElementById(child.id + "_link").getElementsByTagName("a")[0]);
                     linkElement.html(webcam.name);
-                    linkElement.off('click').on('click', function() {
-                        setTimeout(function() {
-                            self.onChangeWebcam();
-                        }, 100); // 100 milliseconds delay
-                    });
+                    // linkElement.off('click').on('click', function() {
+                    //     setTimeout(function() {
+                    //         self.onChangeWebcam();
+                    //     }, 100); // 100 milliseconds delay
+                    // });
                 }
             }
             //console.log("DEBUGGG after bind!",webcams)
-
-            //Fix for inital view load
-            setTimeout(function() {
-                self.onChangeWebcam();
-            }, 100); // 100 milliseconds delay
         };
 
     }

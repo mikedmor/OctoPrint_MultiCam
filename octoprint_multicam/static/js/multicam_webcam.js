@@ -6,6 +6,7 @@ $(function () {
         self.multicam = parameters[0];
 
         self.onWebcamVisibilityChange = function (visible) {
+            //console.log("DEBUGGG Webcam visibility change",visible)
             self.multicam.onChangeWebcam();
         }
     }

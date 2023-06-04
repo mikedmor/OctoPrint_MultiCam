@@ -51,18 +51,7 @@ $(function () {
 
         self.onWebcamLoad = function (webcam) {
             if (self.WebCamSettings.webcamLoaded()) return;
-
             //console.log("DEBUGG Webcam load",webcam)
-
-            self.WebCamSettings.webcam_rotate90(webcam[1].rotate90)
-            if(webcam[1].streamRatio === '16:9'){
-                self.WebCamSettings.webcamRatioClass('ratio169')
-            }else{
-                self.WebCamSettings.webcamRatioClass('ratio43')
-            }
-            self.WebCamSettings.webcam_flipH(webcam[1].flipH)
-            self.WebCamSettings.webcam_flipV(webcam[1].flipV)
-
             self.WebCamSettings.webcamError(false)
             self.WebCamSettings.webcamLoaded(true)
         }
@@ -89,6 +78,14 @@ $(function () {
                 var webcamImage = webcamElement.find(".webcam_image")
 
                 if(webcamImage.length){
+                    self.WebCamSettings.webcam_rotate90(webcam[1].rotate90)
+                    if(webcam[1].streamRatio === '16:9'){
+                        self.WebCamSettings.webcamRatioClass('ratio169')
+                    }else{
+                        self.WebCamSettings.webcamRatioClass('ratio43')
+                    }
+                    self.WebCamSettings.webcam_flipH(webcam[1].flipH)
+                    self.WebCamSettings.webcam_flipV(webcam[1].flipV)
                     webcamImage.on("load", function() {
                         self.onWebcamLoad(webcam)
                         webcamImage.off("load")

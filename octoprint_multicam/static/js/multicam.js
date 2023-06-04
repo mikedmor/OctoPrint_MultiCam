@@ -285,9 +285,11 @@ $(function () {
             // Ensure WebRTC is unloaded
             if (self.WebCamSettings.webRTCPeerConnection != null) {
                 try {
-                    self.WebCamSettings.webRTCPeerConnection.close();
-                }catch(e){
-                    console.log("DEBUGG Error closing WebRTC connection",e)
+                    if (typeof self.WebCamSettings.webRTCPeerConnection.close === 'function') {
+                        self.WebCamSettings.webRTCPeerConnection.close();
+                    }
+                } catch(e) {
+                    console.log("DEBUGG Error closing WebRTC connection", e)
                 }
                 self.WebCamSettings.webRTCPeerConnection = null;
             }

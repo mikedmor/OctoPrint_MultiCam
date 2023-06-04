@@ -30,7 +30,7 @@ $(function () {
             console.log("DEBUGGG onEventSettingsUpdated - Webcam", payload)
             self.multicam_profiles(self.settings.multicam_profiles())
             self.onAfterBinding();
-            self.onWebcamVisibilityChange();
+            self.onChangeWebcam();
         };
 
         self.onChangeWebcam = function () {
@@ -76,10 +76,18 @@ $(function () {
             webcamNowebcam.hide()
             if(webcam[1].rotate90){
                 webcamRotator[0].classList.add('webcam_rotated')
+                webcamRotator[0].classList.remove('webcam_unrotated')
             }else{
+                webcamRotator[0].classList.add('webcam_unrotated')
                 webcamRotator[0].classList.remove('webcam_rotated')
             }
-            webcamFixedRatio[0].classList.add(webcam[1].streamRatio)
+            if(webcam[1].streamRatio === '16:9'){
+                webcamFixedRatio[0].classList.add('ratio169')
+                webcamFixedRatio[0].classList.remove('ratio43')
+            }else{
+                webcamFixedRatio[0].classList.add('ratio43')
+                webcamFixedRatio[0].classList.remove('ratio169')
+            }
             if(webcam[1].flipH){
                 webcamImage[0].classList.add('flipH')
             }else{
@@ -122,6 +130,13 @@ $(function () {
                 if(webcamImage.length){
                     webcamImage.on("load", function() {
                         self.onWebcamLoad(webcam)
+                        webcamImage.off("load")
+                        webcamImage.off("error")
+                    })
+                    webcamImage.on("error", function() {
+                        self.onWebcamError(webcam);
+                        webcamImage.off("load")
+                        webcamImage.off("error")
                     })
                     webcamImage.attr("src", webcam[1].URL)
                 }
@@ -132,7 +147,7 @@ $(function () {
             }
             else{
                 console.log("DEBUGG webcam not found")
-                self.onWebcamError(webcam);
+                //self.onWebcamError(webcam); //This causes errors, as webcam is undefined
             }
         };
 
@@ -158,6 +173,11 @@ $(function () {
                 }
             }
             console.log("DEBUGGG after bind!",webcams)
+
+            //Fix for inital view load
+            setTimeout(function() {
+                self.onChangeWebcam();
+            }, 100); // 100 milliseconds delay
         };
 
     }

@@ -21,7 +21,9 @@ $(function () {
             webcam_rotate90: ko.observable(undefined),
             webcam_flipH: ko.observable(undefined),
             webcam_flipV: ko.observable(undefined),
-            webcamRatioClass: ko.observable(undefined)
+            webcamRatioClass: ko.observable(undefined),
+            webcamLoaded: ko.observable(false),
+            webcamError: ko.observable(false),
         };
 
         self.reloadChangesMade = ko.observable(false);
@@ -120,6 +122,8 @@ $(function () {
         };
 
         self.loadWebCamPreviewStream = function () {
+            self.previewWebCamSettings.webcamLoaded(false);
+            self.previewWebCamSettings.webcamError(false);
             let streamUrl = self.previewWebCamSettings.streamUrl();
             console.log("loading from " + streamUrl);
             // if (snapshotUrl == null || streamUrl == null || snapshotUrl.length == 0 || streamUrl.length == 0) {
@@ -128,7 +132,21 @@ $(function () {
                 return
             }
             // update the new stream-image
-            $("#webcam_image_preview").attr("src", self.previewWebCamSettings.streamUrl());
+            $(".webcam_image_preview").on('load', function () {
+                console.log("DEBUGGG webcam_image_preview - loaded")
+                self.previewWebCamSettings.webcamLoaded(true);
+                self.previewWebCamSettings.webcamError(false);
+                $("#webcam_image_preview").off('load');
+                $("#webcam_image_preview").off('error');
+            });
+            $(".webcam_image_preview").on('error', function () {
+                console.log("DEBUGGG webcam_image_preview - error")
+                self.previewWebCamSettings.webcamLoaded(false);
+                self.previewWebCamSettings.webcamError(true);
+                $("#webcam_image_preview").off('load');
+                $("#webcam_image_preview").off('error');
+            });
+            $(".webcam_image_preview").attr("src", self.previewWebCamSettings.streamUrl());
         };
 
         self.onAfterBinding = function () {

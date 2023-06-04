@@ -82,7 +82,9 @@ $(function () {
             //console.log("DEBUGG Webcam visibility change",self.webcams)
             const visible = self.webcams.find((webcam) => webcam[0].classList.contains("active"));
         
-            this.loadWebcam(visible);
+            if ($(visible[0]).find('.webcam_image').attr("src") !== self.WebCamSettings.streamUrlEscaped()) {
+                this.loadWebcam(visible);
+            }
         };
 
         self.onWebcamError = function (webcam) {
@@ -177,14 +179,14 @@ $(function () {
                         })
 
                         self._switchToMjpgWebcam(webcam)
-                        webcamImage.attr("src", webcam[1].URL)
+                        webcamImage.attr("src", self.WebCamSettings.streamUrlEscaped())
                     } else if (streamType == "hls") {
                         self._switchToHlsWebcam()
-                        self.WebCamSettings.webcamElementHls.attr("src", webcam[1].URL)
+                        self.WebCamSettings.webcamElementHls.attr("src", self.WebCamSettings.streamUrlEscaped())
                         self.onWebcamLoadHls(webcam)
                     } else if (isWebRTCAvailable() && streamType == "webrtc") {
                         self._switchToWebRTCWebcam()
-                        self.WebCamSettings.webcamElementWebrtc.attr("src", webcam[1].URL)
+                        self.WebCamSettings.webcamElementWebrtc.attr("src", self.WebCamSettings.streamUrlEscaped())
                         self.onWebcamLoadRtc(webcam)
                     } else {
                         console.error("Unknown stream type " + streamType)

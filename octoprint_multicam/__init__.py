@@ -11,8 +11,7 @@ from octoprint.webcams import WebcamNotAbleToTakeSnapshotException, get_webcams
 from octoprint.events import Events
 
 
-class MultiCamPlugin(octoprint.plugin.StartupPlugin,
-                      octoprint.plugin.TemplatePlugin,
+class MultiCamPlugin(octoprint.plugin.TemplatePlugin,
                       octoprint.plugin.BlueprintPlugin,
                       octoprint.plugin.SettingsPlugin,
                       octoprint.plugin.AssetPlugin,
@@ -43,10 +42,6 @@ class MultiCamPlugin(octoprint.plugin.StartupPlugin,
     def isClassicWebcamEnabled(self):
         plugin = self._plugin_manager.get_plugin("classicwebcam")
         return plugin is not None
-
-    def on_after_startup(self):
-        self._logger.info("MultiCam Loaded! (more: %s)" % self._settings.get(["multicam_profiles"]))
-        # TODO: Need to disable the ClassicWebcam Plugin as this plugin will manage that functionality
 
     def get_settings_version(self):
         return 3

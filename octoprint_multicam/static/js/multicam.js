@@ -84,8 +84,10 @@ $(function () {
             //console.log("DEBUGG Webcam visibility change",self.webcams)
             const visible = self.webcams.find((webcam) => webcam[0].classList.contains("active"));
         
-            if ($(visible[0]).find('.webcam_image').attr("src") !== self.WebCamSettings.streamUrlEscaped()) {
-                this.loadWebcam(visible);
+            if (visible !== undefined) {
+                if ($(visible[0]).find('.webcam_image').attr("src") !== self.WebCamSettings.streamUrlEscaped()) {
+                    this.loadWebcam(visible);
+                }
             }
         };
 

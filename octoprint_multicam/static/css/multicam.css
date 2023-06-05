@@ -28,6 +28,18 @@
 	color: #FFF;
 }
 
+.webcam_video_container .video-controls {
+    position: absolute;
+    bottom: 10px;
+    right: 8px;
+    z-index: 10;
+    opacity: .4
+}
+
+.webcam_video_container:hover .video-controls {
+    opacity: 1
+}
+
 .webcam_img_container {
     outline: 0;
     background-color: #000

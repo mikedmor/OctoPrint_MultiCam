@@ -1,5 +1,5 @@
 <div class="multicam_container">
-<div class="webcam_video_container" tabindex="0" data-bind="visible: multicam.WebCamSettings.webcamWebRTCEnabled() || multicam.WebCamSettings.webcamHlsEnabled(), css: { webcam_rotated: multicam.WebCamSettings.webcam_rotate90(), webcam_unrotated: !multicam.WebCamSettings.webcam_rotate90() }" style="display: none;">
+    <div class="webcam_video_container" tabindex="0" data-bind="visible: multicam.WebCamSettings.webcamWebRTCEnabled() || multicam.WebCamSettings.webcamHlsEnabled(), css: { webcam_rotated: multicam.WebCamSettings.webcam_rotate90(), webcam_unrotated: !multicam.WebCamSettings.webcam_rotate90() }" style="display: none;">
         <div class="video-controls btn-group action-buttons">
             <div class="btn btn-mini" data-bind="click: function(data, event) { multicam.launchWebcamFullscreen() }"><i class="fas fa-expand"></i></div>
             <div class="btn btn-mini" data-bind="visible: document.pictureInPictureEnabled, click: function(data, event) {  multicam.launchWebcamPictureInPicture() }"><i class="fas fa-images"></i></div>
@@ -16,7 +16,7 @@
             <div class="rotation_target">
                 <div data-bind="css: { flipH: multicam.WebCamSettings.webcam_flipH(), flipV: multicam.WebCamSettings.webcam_flipV() }">
                     <video class="webcam_webrtc" muted autoplay playsinline style="width: 100%" data-bind="visible: multicam.WebCamSettings.webcamWebRTCEnabled()"></video>
-                    <video class="webcam_hls" muted autoplay playsinline style="width: 100%" data-bind="visible: multicam.WebCamSettings.webcamHlsEnabled()"></video>
+                    <video class="webcam_hls" muted autoplay playsinline style="width: 100%" data-bind="visible: multicam.WebCamSettings.webcamHlsEnabled()" type="application/x-mpegURL"></video>
                 </div>
             </div>
         </div>

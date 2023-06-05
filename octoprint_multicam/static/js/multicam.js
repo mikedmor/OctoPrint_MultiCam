@@ -33,7 +33,7 @@ $(function () {
             webcam_flipV: ko.observable(false),
             webcamRatioClass: ko.observable('ratio169'),
             webcamError: ko.observable(false),
-            webcamMuted: ko.observable(false),
+            webcamMuted: ko.observable(true),
             webRTCPeerConnection: ko.observable(null),
             webcamElementHls: ko.observable(null),
             webcamElementWebrtc: ko.observable(null)
@@ -51,24 +51,26 @@ $(function () {
 
         self._getActiveWebcamVideoElement = function () {
             if (self.WebCamSettings.webcamWebRTCEnabled()) {
-                return self.WebCamSettings.webcamElementWebrtc;
+                return self.WebCamSettings.webcamElementWebrtc[0];
             } else {
-                return self.WebCamSettings.webcamElementHls;
+                return self.WebCamSettings.webcamElementHls[0];
             }
         };
 
         self.launchWebcamPictureInPicture = function () {
+            console.log("DEBUGG launchWebcamPictureInPicture",self._getActiveWebcamVideoElement())
             self._getActiveWebcamVideoElement().requestPictureInPicture();
         };
 
         self.launchWebcamFullscreen = function () {
+            console.log("DEBUGG launchWebcamPictureInPicture",self._getActiveWebcamVideoElement())
             self._getActiveWebcamVideoElement().requestFullscreen();
         };
 
         self.toggleWebcamMute = function () {
             self.WebCamSettings.webcamMuted(!self.WebCamSettings.webcamMuted());
-            self.WebCamSettings.webcamElementWebrtc.muted = self.WebCamSettings.webcamMuted();
-            self.WebCamSettings.webcamElementHls.muted = self.WebCamSettings.webcamMuted();
+            self.WebCamSettings.webcamElementWebrtc[0].muted = self.WebCamSettings.webcamMuted();
+            self.WebCamSettings.webcamElementHls[0].muted = self.WebCamSettings.webcamMuted();
         };
 
         self.onEventSettingsUpdated = function (payload) {
@@ -137,6 +139,13 @@ $(function () {
             self.webcams.forEach((webcam) => {
                 self.unloadWebcam(webcam);
             });
+            
+            // Unload HLS
+            if (self.hls != null) {
+                self.WebCamSettings.webcamElementHls.src = null;
+                self.hls.destroy();
+                self.hls = null;
+            }
         }
 
         self.loadWebcam = function (webcam) {
@@ -182,11 +191,9 @@ $(function () {
                         webcamImage.attr("src", self.WebCamSettings.streamUrlEscaped())
                     } else if (streamType == "hls") {
                         self._switchToHlsWebcam()
-                        self.WebCamSettings.webcamElementHls.attr("src", self.WebCamSettings.streamUrlEscaped())
                         self.onWebcamLoadHls(webcam)
                     } else if (isWebRTCAvailable() && streamType == "webrtc") {
                         self._switchToWebRTCWebcam()
-                        self.WebCamSettings.webcamElementWebrtc.attr("src", self.WebCamSettings.streamUrlEscaped())
                         self.onWebcamLoadRtc(webcam)
                     } else {
                         console.error("Unknown stream type " + streamType)
@@ -300,11 +307,15 @@ $(function () {
                 typeof video.canPlayType != undefined &&
                 video.canPlayType("application/vnd.apple.mpegurl") == "probably"
             ) {
+                console.log("DEBUGG Using native HLS playback")
                 video.src = self.streamUrlEscaped();
             } else if (Hls.isSupported()) {
+                console.log("DEBUGG Using HLS.js playback")
                 self.hls = new Hls();
                 self.hls.loadSource(self.WebCamSettings.streamUrlEscaped());
                 self.hls.attachMedia(video);
+            }else{
+                console.error("Error: HLS not supported")
             }
 
             self.WebCamSettings.webcamMjpgEnabled(false);

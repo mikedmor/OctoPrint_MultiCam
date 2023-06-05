@@ -170,6 +170,10 @@ $(function () {
             self.reloadChangesMade(true);
         };
 
+        self.onSettingsHidden = function () {
+            self.unloadWebcam()
+        };
+
         self.unloadWebcam = function () {
             //console.log("DEBUGG Unloading webcam",webcam)
             var webcamElement = $('.multicam_preview_container');
@@ -241,7 +245,7 @@ $(function () {
                     $("#webcam_image_preview").off('load');
                     $("#webcam_image_preview").off('error');
                 });
-                
+
                 self._switchToMjpgWebcam();
                 $(".webcam_image_preview").attr("src", self.previewWebCamSettings.streamUrl());
             } else if (streamType == "hls") {

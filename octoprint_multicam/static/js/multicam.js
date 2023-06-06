@@ -18,9 +18,9 @@ $(function () {
             webcamLoaded: ko.observable(false),
             webcamStreamType: ko.pureComputed(function () {
                 try {
-                    return self.determineWebcamStreamType(self.WebCamSettings.streamUrlEscaped());
+                    return self._determineWebcamStreamType(self.WebCamSettings.streamUrlEscaped());
                 } catch (e) {
-                    console.error(e);
+                    console.error("Error:",e);
                     self.WebCamSettings.webcamError(true);
                     return "mjpg";
                 }
@@ -39,11 +39,38 @@ $(function () {
             webcamElementWebrtc: ko.observable(null)
         };
 
+        // Octoprint Hooks
         self.onBeforeBinding = function () {
             self.multicam_profiles(self.settings.multicam_profiles())
         };
 
-        self.syncWebcamElements = function (webcam) {
+        self.onAfterBinding = function () {
+            let webcams = ko.toJS(self.settings.multicam_profiles)
+            self.webcams = []
+            self.surfaces = []
+
+            for (const child of document.getElementById("webcam-group").children) {
+                if (child.id.startsWith("webcam_plugin_multicam")) {
+                    // We can use this surface, take next webcam and bind
+                    const webcam = webcams.shift()
+                    self.webcams.push([child, webcam])
+
+                    // Show name in side bar
+                    let linkElement = $(document.getElementById(child.id + "_link").getElementsByTagName("a")[0]);
+                    linkElement.html(webcam.name);
+                }
+            }
+        };
+
+        self.onEventSettingsUpdated = function (payload) {
+            //console.log("DEBUGGG onEventSettingsUpdated - Webcam", payload)
+            self.multicam_profiles(self.settings.multicam_profiles())
+            self.onAfterBinding();
+            self.onChangeWebcam();
+        };
+
+        // Helper functions
+        self._syncWebcamElements = function (webcam) {
             var webcamElement = $(webcam[0]);
             self.WebCamSettings.webcamElementHls = webcamElement.find(".webcam_hls").first();
             self.WebCamSettings.webcamElementWebrtc = webcamElement.find(".webcam_webrtc").first();
@@ -56,163 +83,8 @@ $(function () {
                 return self.WebCamSettings.webcamElementHls[0];
             }
         };
-
-        self.launchWebcamPictureInPicture = function () {
-            console.log("DEBUGG launchWebcamPictureInPicture",self._getActiveWebcamVideoElement())
-            self._getActiveWebcamVideoElement().requestPictureInPicture();
-        };
-
-        self.launchWebcamFullscreen = function () {
-            console.log("DEBUGG launchWebcamPictureInPicture",self._getActiveWebcamVideoElement())
-            self._getActiveWebcamVideoElement().requestFullscreen();
-        };
-
-        self.toggleWebcamMute = function () {
-            self.WebCamSettings.webcamMuted(!self.WebCamSettings.webcamMuted());
-            self.WebCamSettings.webcamElementWebrtc[0].muted = self.WebCamSettings.webcamMuted();
-            self.WebCamSettings.webcamElementHls[0].muted = self.WebCamSettings.webcamMuted();
-        };
-
-        self.onEventSettingsUpdated = function (payload) {
-            //console.log("DEBUGGG onEventSettingsUpdated - Webcam", payload)
-            self.multicam_profiles(self.settings.multicam_profiles())
-            self.onAfterBinding();
-            self.onChangeWebcam();
-        };
-
-        self.onChangeWebcam = function () {
-            //console.log("DEBUGG Webcam visibility change",self.webcams)
-            const visible = self.webcams.find((webcam) => webcam[0].classList.contains("active"));
         
-            if (visible !== undefined) {
-                if ($(visible[0]).find('.webcam_image').attr("src") !== self.WebCamSettings.streamUrlEscaped()) {
-                    this.loadWebcam(visible);
-                }
-            }
-        };
-
-        self.onWebcamError = function (webcam) {
-            console.error("ERROR loading webacm: ",webcam[1].URL)
-            self.WebCamSettings.webcamError(true)
-            self.WebCamSettings.webcamLoaded(false)
-        }
-
-        self.onWebcamLoad = function (webcam) {
-            if (self.WebCamSettings.webcamLoaded()) return;
-            //console.log("DEBUGG Webcam load",webcam)
-            self.WebCamSettings.webcamError(false)
-            self.WebCamSettings.webcamHlsEnabled(false)
-            self.WebCamSettings.webcamWebRTCEnabled(false)
-            self.WebCamSettings.webcamLoaded(true)
-        }
-
-        self.onWebcamLoadHls = function (webcam) {
-            if (self.WebCamSettings.webcamLoaded()) return;
-            //console.log("DEBUGG Webcam load Hls",webcam)
-            self.WebCamSettings.webcamError(false)
-            self.WebCamSettings.webcamWebRTCEnabled(false)
-            self.WebCamSettings.webcamLoaded(false)
-            self.WebCamSettings.webcamHlsEnabled(true)
-        }
-
-        self.onWebcamLoadRtc = function (webcam) {
-            if (self.WebCamSettings.webcamLoaded()) return;
-            //console.log("DEBUGG Webcam load Rtc",webcam)
-            self.WebCamSettings.webcamError(false)
-            self.WebCamSettings.webcamHlsEnabled(false)
-            self.WebCamSettings.webcamLoaded(false)
-            self.WebCamSettings.webcamWebRTCEnabled(true)
-        }
-
-        self.unloadWebcam = function (webcam) {
-            //console.log("DEBUGG Unloading webcam",webcam)
-            var webcamElement = $(webcam[0]);
-            var webcamImage = webcamElement.find(".webcam_image")
-
-            //Turn off on handlers during unload
-            webcamImage.off("load")
-            webcamImage.off("error")
-
-            //Remove the src of the webcam to unload it from the window
-            webcamImage.attr("src", "")
-        };
-
-        self.unloadWebcams = function () {
-            self.webcams.forEach((webcam) => {
-                self.unloadWebcam(webcam);
-            });
-            
-            // Unload HLS
-            if (self.hls != null) {
-                self.WebCamSettings.webcamElementHls.src = null;
-                self.hls.destroy();
-                self.hls = null;
-            }
-        }
-
-        self.loadWebcam = function (webcam) {
-            self.WebCamSettings.webcamError(false)
-            self.WebCamSettings.webcamLoaded(false)
-
-            //Unload before loading the new webcam
-            self.unloadWebcams()
-
-            if(webcam){
-                var webcamElement = $(webcam[0]);
-                var webcamImage = webcamElement.find(".webcam_image")
-
-                if(webcamImage.length){
-                    self.WebCamSettings.webcam_rotate90(webcam[1].rotate90)
-                    if(webcam[1].streamRatio === '16:9'){
-                        self.WebCamSettings.webcamRatioClass('ratio169')
-                    }else{
-                        self.WebCamSettings.webcamRatioClass('ratio43')
-                    }
-                    self.WebCamSettings.webcam_flipH(webcam[1].flipH)
-                    self.WebCamSettings.webcam_flipV(webcam[1].flipV)
-                    console.log("Loading webcam: ", webcam[1].URL)
-
-                    self.WebCamSettings.streamUrl(webcam[1].URL)
-
-                    self.syncWebcamElements(webcam);
-
-                    var streamType = self.WebCamSettings.webcamStreamType();
-                    if (streamType == "mjpg") {
-                        webcamImage.on("load", function() {
-                            self.onWebcamLoad(webcam)
-                            webcamImage.off("load")
-                            webcamImage.off("error")
-                        })
-                        webcamImage.on("error", function() {
-                            self.onWebcamError(webcam);
-                            webcamImage.off("load")
-                            webcamImage.off("error")
-                        })
-
-                        self._switchToMjpgWebcam(webcam)
-                        webcamImage.attr("src", self.WebCamSettings.streamUrlEscaped())
-                    } else if (streamType == "hls") {
-                        self._switchToHlsWebcam()
-                        self.onWebcamLoadHls(webcam)
-                    } else if (isWebRTCAvailable() && streamType == "webrtc") {
-                        self._switchToWebRTCWebcam()
-                        self.onWebcamLoadRtc(webcam)
-                    } else {
-                        console.error("Unknown stream type " + streamType)
-                    }
-                }
-                else{
-                    console.log("DEBUGG webcamImage not found")
-                    self.onWebcamError(webcam);
-                }
-            }
-            else{
-                console.log("DEBUGG webcam not found")
-                //self.onWebcamError(webcam); //This causes errors, as webcam is undefined
-            }
-        };
-
-        self.determineWebcamStreamType = function (streamUrl) {
+        self._determineWebcamStreamType = function (streamUrl) {
             if (!streamUrl) {
                 throw "Empty streamUrl. Cannot determine stream type.";
             }
@@ -239,24 +111,6 @@ $(function () {
             // By default, 'mjpg' is the stream type.
             console.log("DEBUGG Webcam stream type: mjpg")
             return "mjpg";
-        };
-
-        self.onAfterBinding = function () {
-            let webcams = ko.toJS(self.settings.multicam_profiles)
-            self.webcams = []
-            self.surfaces = []
-
-            for (const child of document.getElementById("webcam-group").children) {
-                if (child.id.startsWith("webcam_plugin_multicam")) {
-                    // We can use this surface, take next webcam and bind
-                    const webcam = webcams.shift()
-                    self.webcams.push([child, webcam])
-
-                    // Show name in side bar
-                    let linkElement = $(document.getElementById(child.id + "_link").getElementsByTagName("a")[0]);
-                    linkElement.html(webcam.name);
-                }
-            }
         };
 
         self._switchToMjpgWebcam = function (webcam) {
@@ -298,7 +152,7 @@ $(function () {
                         self.WebCamSettings.webRTCPeerConnection.close();
                     }
                 } catch(e) {
-                    console.log("DEBUGG Error closing WebRTC connection", e)
+                    console.error("Error: unable to close WebRTC connection", e)
                 }
                 self.WebCamSettings.webRTCPeerConnection = null;
             }
@@ -360,6 +214,156 @@ $(function () {
             self.WebCamSettings.webcamMjpgEnabled(false);
             self.WebCamSettings.webcamHlsEnabled(false);
             self.WebCamSettings.webcamWebRTCEnabled(true);
+        };
+
+        // Webcam actions
+        self.loadWebcam = function (webcam) {
+            self.WebCamSettings.webcamError(false)
+            self.WebCamSettings.webcamLoaded(false)
+
+            //Unload before loading the new webcam
+            self.unloadWebcams()
+
+            if(webcam){
+                var webcamElement = $(webcam[0]);
+                var webcamImage = webcamElement.find(".webcam_image")
+
+                if(webcamImage.length){
+                    self.WebCamSettings.webcam_rotate90(webcam[1].rotate90)
+                    if(webcam[1].streamRatio === '16:9'){
+                        self.WebCamSettings.webcamRatioClass('ratio169')
+                    }else{
+                        self.WebCamSettings.webcamRatioClass('ratio43')
+                    }
+                    self.WebCamSettings.webcam_flipH(webcam[1].flipH)
+                    self.WebCamSettings.webcam_flipV(webcam[1].flipV)
+                    console.log("Loading webcam: ", webcam[1].URL)
+
+                    self.WebCamSettings.streamUrl(webcam[1].URL)
+
+                    self._syncWebcamElements(webcam);
+
+                    var streamType = self.WebCamSettings.webcamStreamType();
+                    if (streamType == "mjpg") {
+                        webcamImage.on("load", function() {
+                            self.onWebcamLoad(webcam)
+                            webcamImage.off("load")
+                            webcamImage.off("error")
+                        })
+                        webcamImage.on("error", function() {
+                            self.onWebcamError(webcam);
+                            webcamImage.off("load")
+                            webcamImage.off("error")
+                        })
+
+                        self._switchToMjpgWebcam(webcam)
+                        webcamImage.attr("src", self.WebCamSettings.streamUrlEscaped())
+                    } else if (streamType == "hls") {
+                        self._switchToHlsWebcam()
+                        self.onWebcamLoadHls(webcam)
+                    } else if (isWebRTCAvailable() && streamType == "webrtc") {
+                        self._switchToWebRTCWebcam()
+                        self.onWebcamLoadRtc(webcam)
+                    } else {
+                        console.error("Error: Unknown stream type " + streamType)
+                    }
+                }
+                else{
+                    console.error("Error: webcamImage not found")
+                    self.onWebcamError(webcam);
+                }
+            }
+            else{
+                console.error("Error: webcam not found")
+                //self.onWebcamError(webcam); //This causes errors, as webcam is undefined
+            }
+        };
+
+        self.launchWebcamPictureInPicture = function () {
+            console.log("DEBUGG launchWebcamPictureInPicture",self._getActiveWebcamVideoElement())
+            self._getActiveWebcamVideoElement().requestPictureInPicture();
+        };
+
+        self.launchWebcamFullscreen = function () {
+            console.log("DEBUGG launchWebcamPictureInPicture",self._getActiveWebcamVideoElement())
+            self._getActiveWebcamVideoElement().requestFullscreen();
+        };
+
+        self.toggleWebcamMute = function () {
+            self.WebCamSettings.webcamMuted(!self.WebCamSettings.webcamMuted());
+            self.WebCamSettings.webcamElementWebrtc[0].muted = self.WebCamSettings.webcamMuted();
+            self.WebCamSettings.webcamElementHls[0].muted = self.WebCamSettings.webcamMuted();
+        };
+
+        self.onChangeWebcam = function () {
+            //console.log("DEBUGG Webcam visibility change",self.webcams)
+            const visible = self.webcams.find((webcam) => webcam[0].classList.contains("active"));
+        
+            if (visible !== undefined) {
+                if ($(visible[0]).find('.webcam_image').attr("src") !== self.WebCamSettings.streamUrlEscaped()) {
+                    this.loadWebcam(visible);
+                }
+            }
+        };
+
+        // Webcam Callbacks
+        self.onWebcamError = function (webcam) {
+            console.error("Error: unable to load webcam: ",webcam[1].URL)
+            self.WebCamSettings.webcamError(true)
+            self.WebCamSettings.webcamLoaded(false)
+        };
+
+        self.onWebcamLoad = function (webcam) {
+            if (self.WebCamSettings.webcamLoaded()) return;
+            //console.log("DEBUGG Webcam load",webcam)
+            self.WebCamSettings.webcamError(false)
+            self.WebCamSettings.webcamHlsEnabled(false)
+            self.WebCamSettings.webcamWebRTCEnabled(false)
+            self.WebCamSettings.webcamLoaded(true)
+        };
+
+        self.onWebcamLoadHls = function (webcam) {
+            if (self.WebCamSettings.webcamLoaded()) return;
+            //console.log("DEBUGG Webcam load Hls",webcam)
+            self.WebCamSettings.webcamError(false)
+            self.WebCamSettings.webcamWebRTCEnabled(false)
+            self.WebCamSettings.webcamLoaded(false)
+            self.WebCamSettings.webcamHlsEnabled(true)
+        };
+
+        self.onWebcamLoadRtc = function (webcam) {
+            if (self.WebCamSettings.webcamLoaded()) return;
+            //console.log("DEBUGG Webcam load Rtc",webcam)
+            self.WebCamSettings.webcamError(false)
+            self.WebCamSettings.webcamHlsEnabled(false)
+            self.WebCamSettings.webcamLoaded(false)
+            self.WebCamSettings.webcamWebRTCEnabled(true)
+        };
+
+        self.unloadWebcam = function (webcam) {
+            //console.log("DEBUGG Unloading webcam",webcam)
+            var webcamElement = $(webcam[0]);
+            var webcamImage = webcamElement.find(".webcam_image")
+
+            //Turn off on handlers during unload
+            webcamImage.off("load")
+            webcamImage.off("error")
+
+            //Remove the src of the webcam to unload it from the window
+            webcamImage.attr("src", "")
+        };
+
+        self.unloadWebcams = function () {
+            self.webcams.forEach((webcam) => {
+                self.unloadWebcam(webcam);
+            });
+            
+            // Unload HLS
+            if (self.hls != null) {
+                self.WebCamSettings.webcamElementHls.src = null;
+                self.hls.destroy();
+                self.hls = null;
+            }
         };
 
     }

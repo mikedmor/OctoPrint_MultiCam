@@ -13,7 +13,7 @@ $(function () {
 
         self.selectedPreviewProfileIndex = ko.observable();
         self.selectedPreviewProfileIndex.subscribe(function () {
-            self.updatePreviewSettings();
+            self._updatePreviewSettings();
         });
 
         self.previewWebCamSettings = {
@@ -24,9 +24,9 @@ $(function () {
             webcamLoaded: ko.observable(false),
             webcamStreamType: ko.pureComputed(function () {
                 try {
-                    return self.determineWebcamStreamType(self.previewWebCamSettings.streamUrlEscaped());
+                    return self._determineWebcamStreamType(self.previewWebCamSettings.streamUrlEscaped());
                 } catch (e) {
-                    console.error(e);
+                    console.error("Error:",e);
                     self.previewWebCamSettings.webcamError(true);
                     return "mjpg";
                 }
@@ -47,63 +47,7 @@ $(function () {
 
         self.reloadChangesMade = ko.observable(false);
 
-        self.updatePreviewSettings = function (selectedProfileIndex) {
-            //console.log("DEBUGGG updatePreviewSettings - selectedProfileIndex", selectedProfileIndex)
-            if (selectedProfileIndex) {
-                self.selectedPreviewProfileIndex(selectedProfileIndex());
-            }
-            // copy current selected profile data to preview webcam settings
-            let selectedProfile = self.settings.settings.plugins.multicam.multicam_profiles()[self.selectedPreviewProfileIndex()];
-            if (selectedProfile) {
-                self.previewWebCamSettings.streamUrl(selectedProfile.URL());
-                self.previewWebCamSettings.webcam_rotate90(selectedProfile.rotate90());
-                self.previewWebCamSettings.webcam_flipH(selectedProfile.flipH());
-                self.previewWebCamSettings.webcam_flipV(selectedProfile.flipV());
-                if (selectedProfile.streamRatio() == "4:3") {
-                    self.previewWebCamSettings.webcamRatioClass("ratio43");
-                } else {
-                    self.previewWebCamSettings.webcamRatioClass("ratio169");
-                }
-                // reload stream
-                self.loadWebCamPreviewStream();
-            }
-        };
-
-        self.onBeforeBinding = function () {
-            self.multicam_profiles(self.settings.settings.plugins.multicam.multicam_profiles());
-            self.available_ratios = ["16:9", "4:3"];
-        };
-
-        self.syncWebcamElements = function () {
-            var webcamElement = $('.multicam_preview_container');
-            self.previewWebCamSettings.webcamElementHls = webcamElement.find(".webcam_hls").first();
-            self.previewWebCamSettings.webcamElementWebrtc = webcamElement.find(".webcam_webrtc").first();
-        };
-
-        self._getActiveWebcamVideoElement = function () {
-            if (self.previewWebCamSettings.webcamWebRTCEnabled()) {
-                return self.previewWebCamSettings.webcamElementWebrtc[0];
-            } else {
-                return self.previewWebCamSettings.webcamElementHls[0];
-            }
-        };
-
-        self.launchWebcamPictureInPicture = function () {
-            console.log("DEBUGG launchWebcamPictureInPicture",self._getActiveWebcamVideoElement())
-            self._getActiveWebcamVideoElement().requestPictureInPicture();
-        };
-
-        self.launchWebcamFullscreen = function () {
-            console.log("DEBUGG launchWebcamPictureInPicture",self._getActiveWebcamVideoElement())
-            self._getActiveWebcamVideoElement().requestFullscreen();
-        };
-
-        self.toggleWebcamMute = function () {
-            self.previewWebCamSettings.webcamMuted(!self.previewWebCamSettings.webcamMuted());
-            self.previewWebCamSettings.webcamElementWebrtc[0].muted = self.previewWebCamSettings.webcamMuted();
-            self.previewWebCamSettings.webcamElementHls[0].muted = self.previewWebCamSettings.webcamMuted();
-        };
-
+        // Octoprint Hooks
         self.onStartup = function () {
             self.syncWebcamElements();
         };
@@ -113,6 +57,29 @@ $(function () {
             // Force default webcam in settings to avoid confusion
             let preSelectedProfile = 0;
             self.selectedPreviewProfileIndex(preSelectedProfile);
+        };
+
+        self.onSettingsHidden = function () {
+            self.unloadWebcam()
+        };
+
+        self.onBeforeBinding = function () {
+            self.multicam_profiles(self.settings.settings.plugins.multicam.multicam_profiles());
+            self.available_ratios = ["16:9", "4:3"];
+        };
+
+        self.onAfterBinding = function () {
+            $.ajax({
+                url: "/plugin/multicam/classicwebcamstatus",
+                type: "GET",
+                success: function (response) {
+                    self.isClassicWebcamEnabled = response.enabled;
+                    //console.log("DEBUGGG isClassicWebcamEnabled", self.isClassicWebcamEnabled)
+
+                    //TODO: Inform the user that the classic webcam is enabled and they should consider disabling it
+
+                }
+            });
         };
 
         self.onEventSettingsUpdated = function (payload) {
@@ -149,114 +116,48 @@ $(function () {
             }
         };
 
-        self.addMultiCamProfile = function () {
-            self.settings.settings.plugins.multicam.multicam_profiles.push({
-                name: ko.observable('Webcam ' + self.multicam_profiles().length),
-                URL: ko.observable('http://'),
-                snapshot: ko.observable('http://'),
-                streamRatio: ko.observable(''),
-                flipH: ko.observable(false),
-                flipV: ko.observable(false),
-                rotate90: ko.observable(false),
-                isButtonEnabled: ko.observable(true)
-            });
-            self.multicam_profiles(self.settings.settings.plugins.multicam.multicam_profiles());
-            self.reloadChangesMade(true);
-        };
-
-        self.removeMultiCamProfile = function (profile) {
-            self.settings.settings.plugins.multicam.multicam_profiles.remove(profile);
-            self.multicam_profiles(self.settings.settings.plugins.multicam.multicam_profiles());
-            self.reloadChangesMade(true);
-        };
-
-        self.onSettingsHidden = function () {
-            self.unloadWebcam()
-        };
-
-        self.unloadWebcam = function () {
-            //console.log("DEBUGG Unloading webcam",webcam)
+        // Helper functions
+        self._syncWebcamElements = function () {
             var webcamElement = $('.multicam_preview_container');
-            var webcamImage = webcamElement.find(".webcam_image")
+            self.previewWebCamSettings.webcamElementHls = webcamElement.find(".webcam_hls").first();
+            self.previewWebCamSettings.webcamElementWebrtc = webcamElement.find(".webcam_webrtc").first();
+        };
 
-            //Turn off on handlers during unload
-            webcamImage.off("load")
-            webcamImage.off("error")
-
-            //Remove the src of the webcam to unload it from the window
-            webcamImage.attr("src", "")
-
-            // Unload HLS
-            if (self.hls != null) {
-                self.previewWebCamSettings.webcamElementHls.src = null;
-                self.hls.destroy();
-                self.hls = null;
+        self._getActiveWebcamVideoElement = function () {
+            if (self.previewWebCamSettings.webcamWebRTCEnabled()) {
+                return self.previewWebCamSettings.webcamElementWebrtc[0];
+            } else {
+                return self.previewWebCamSettings.webcamElementHls[0];
             }
         };
 
-        self.onWebcamLoad = function () {
-            if (self.previewWebCamSettings.webcamLoaded()) return;
-            self.previewWebCamSettings.webcamError(false)
-            self.previewWebCamSettings.webcamHlsEnabled(false)
-            self.previewWebCamSettings.webcamWebRTCEnabled(false)
-            self.previewWebCamSettings.webcamLoaded(true)
-        }
-
-        self.onWebcamLoadHls = function () {
-            if (self.previewWebCamSettings.webcamLoaded()) return;
-            self.previewWebCamSettings.webcamError(false)
-            self.previewWebCamSettings.webcamWebRTCEnabled(false)
-            self.previewWebCamSettings.webcamLoaded(false)
-            self.previewWebCamSettings.webcamHlsEnabled(true)
-        }
-
-        self.onWebcamLoadRtc = function () {
-            if (self.previewWebCamSettings.webcamLoaded()) return;
-            self.previewWebCamSettings.webcamError(false)
-            self.previewWebCamSettings.webcamHlsEnabled(false)
-            self.previewWebCamSettings.webcamLoaded(false)
-            self.previewWebCamSettings.webcamWebRTCEnabled(true)
-        }
-
-        self.loadWebCamPreviewStream = function () {
-            self.previewWebCamSettings.webcamLoaded(false);
-            self.previewWebCamSettings.webcamError(false);
-
-            self.unloadWebcam();
-
-            let streamUrl = self.previewWebCamSettings.streamUrl();
-            //console.log("loading from " + streamUrl);
-            // if (snapshotUrl == null || streamUrl == null || snapshotUrl.length == 0 || streamUrl.length == 0) {
-            if (streamUrl == null || streamUrl.length == 0) {
-                alert("Camera-Error: Please make sure that stream-url is configured in your camera-settings")
-                return
+        self._determineWebcamStreamType = function (streamUrl) {
+            if (!streamUrl) {
+                throw "Empty streamUrl. Cannot determine stream type.";
             }
 
-            var streamType = self.previewWebCamSettings.webcamStreamType();
-            if (streamType == "mjpg") {
-                // update the new stream-image
-                $(".webcam_image_preview").on('load', function () {
-                    self.onWebcamLoad();
-                    $("#webcam_image_preview").off('load');
-                    $("#webcam_image_preview").off('error');
-                });
-                $(".webcam_image_preview").on('error', function () {
-                    self.onWebcamError();
-                    $("#webcam_image_preview").off('load');
-                    $("#webcam_image_preview").off('error');
-                });
-
-                self._switchToMjpgWebcam();
-                $(".webcam_image_preview").attr("src", self.previewWebCamSettings.streamUrl());
-            } else if (streamType == "hls") {
-                self._switchToHlsWebcam()
-                self.onWebcamLoadHls()
-            } else if (isWebRTCAvailable() && streamType == "webrtc") {
-                self._switchToWebRTCWebcam()
-                self.onWebcamLoadRtc()
-            } else {
-                console.error("Unknown stream type " + streamType)
+            var parsed = validateWebcamUrl(streamUrl);
+            if (!parsed) {
+                throw "Invalid streamUrl. Cannot determine stream type.";
             }
+
+            if (parsed.protocol === "webrtc:" || parsed.protocol === "webrtcs:") {
+                console.log("DEBUGG Webcam stream type: webrtc")
+                return "webrtc";
+            }
+
+            var lastDotPosition = parsed.pathname.lastIndexOf(".");
+            if (lastDotPosition !== -1) {
+                var extension = parsed.pathname.substring(lastDotPosition + 1);
+                if (extension.toLowerCase() === "m3u8") {
+                    console.log("DEBUGG Webcam stream type: hls")
+                    return "hls";
+                }
+            }
+
+            // By default, 'mjpg' is the stream type.
+            console.log("DEBUGG Webcam stream type: mjpg")
+            return "mjpg";
         };
 
         self._switchToMjpgWebcam = function () {
@@ -298,7 +199,7 @@ $(function () {
                         self.previewWebCamSettings.webRTCPeerConnection.close();
                     }
                 } catch(e) {
-                    console.log("DEBUGG Error closing WebRTC connection", e)
+                    console.error("Error: unable to close WebRTC connection", e)
                 }
                 self.previewWebCamSettings.webRTCPeerConnection = null;
             }
@@ -362,48 +263,158 @@ $(function () {
             self.previewWebCamSettings.webcamWebRTCEnabled(true);
         };
 
-        self.determineWebcamStreamType = function (streamUrl) {
-            if (!streamUrl) {
-                throw "Empty streamUrl. Cannot determine stream type.";
+        self._updatePreviewSettings = function (selectedProfileIndex) {
+            //console.log("DEBUGGG _updatePreviewSettings - selectedProfileIndex", selectedProfileIndex)
+            if (selectedProfileIndex) {
+                self.selectedPreviewProfileIndex(selectedProfileIndex());
             }
-
-            var parsed = validateWebcamUrl(streamUrl);
-            if (!parsed) {
-                throw "Invalid streamUrl. Cannot determine stream type.";
-            }
-
-            if (parsed.protocol === "webrtc:" || parsed.protocol === "webrtcs:") {
-                console.log("DEBUGG Webcam stream type: webrtc")
-                return "webrtc";
-            }
-
-            var lastDotPosition = parsed.pathname.lastIndexOf(".");
-            if (lastDotPosition !== -1) {
-                var extension = parsed.pathname.substring(lastDotPosition + 1);
-                if (extension.toLowerCase() === "m3u8") {
-                    console.log("DEBUGG Webcam stream type: hls")
-                    return "hls";
+            // copy current selected profile data to preview webcam settings
+            let selectedProfile = self.settings.settings.plugins.multicam.multicam_profiles()[self.selectedPreviewProfileIndex()];
+            if (selectedProfile) {
+                self.previewWebCamSettings.streamUrl(selectedProfile.URL());
+                self.previewWebCamSettings.webcam_rotate90(selectedProfile.rotate90());
+                self.previewWebCamSettings.webcam_flipH(selectedProfile.flipH());
+                self.previewWebCamSettings.webcam_flipV(selectedProfile.flipV());
+                if (selectedProfile.streamRatio() == "4:3") {
+                    self.previewWebCamSettings.webcamRatioClass("ratio43");
+                } else {
+                    self.previewWebCamSettings.webcamRatioClass("ratio169");
                 }
+                // reload stream
+                self.loadWebCamPreviewStream();
             }
-
-            // By default, 'mjpg' is the stream type.
-            console.log("DEBUGG Webcam stream type: mjpg")
-            return "mjpg";
         };
 
-        self.onAfterBinding = function () {
-            $.ajax({
-                url: "/plugin/multicam/classicwebcamstatus",
-                type: "GET",
-                success: function (response) {
-                    self.isClassicWebcamEnabled = response.enabled;
-                    //console.log("DEBUGGG isClassicWebcamEnabled", self.isClassicWebcamEnabled)
+        // Webcam actions
+        self.loadWebCamPreviewStream = function () {
+            self.previewWebCamSettings.webcamLoaded(false);
+            self.previewWebCamSettings.webcamError(false);
 
-                    //TODO: Inform the user that the classic webcam is enabled and they should consider disabling it
+            self.unloadWebcam();
 
-                }
+            let streamUrl = self.previewWebCamSettings.streamUrl();
+            //console.log("loading from " + streamUrl);
+            // if (snapshotUrl == null || streamUrl == null || snapshotUrl.length == 0 || streamUrl.length == 0) {
+            if (streamUrl == null || streamUrl.length == 0) {
+                alert("Camera-Error: Please make sure that stream-url is configured in your camera-settings")
+                return
+            }
+
+            var streamType = self.previewWebCamSettings.webcamStreamType();
+            if (streamType == "mjpg") {
+                // update the new stream-image
+                $(".webcam_image_preview").on('load', function () {
+                    self.onWebcamLoad();
+                    $("#webcam_image_preview").off('load');
+                    $("#webcam_image_preview").off('error');
+                });
+                $(".webcam_image_preview").on('error', function () {
+                    self.onWebcamError();
+                    $("#webcam_image_preview").off('load');
+                    $("#webcam_image_preview").off('error');
+                });
+
+                self._switchToMjpgWebcam();
+                $(".webcam_image_preview").attr("src", self.previewWebCamSettings.streamUrl());
+            } else if (streamType == "hls") {
+                self._switchToHlsWebcam()
+                self.onWebcamLoadHls()
+            } else if (isWebRTCAvailable() && streamType == "webrtc") {
+                self._switchToWebRTCWebcam()
+                self.onWebcamLoadRtc()
+            } else {
+                console.error("Error: Unknown stream type " + streamType)
+            }
+        };
+
+        self.launchWebcamPictureInPicture = function () {
+            console.log("DEBUGG launchWebcamPictureInPicture",self._getActiveWebcamVideoElement())
+            self._getActiveWebcamVideoElement().requestPictureInPicture();
+        };
+
+        self.launchWebcamFullscreen = function () {
+            console.log("DEBUGG launchWebcamPictureInPicture",self._getActiveWebcamVideoElement())
+            self._getActiveWebcamVideoElement().requestFullscreen();
+        };
+
+        self.toggleWebcamMute = function () {
+            self.previewWebCamSettings.webcamMuted(!self.previewWebCamSettings.webcamMuted());
+            self.previewWebCamSettings.webcamElementWebrtc[0].muted = self.previewWebCamSettings.webcamMuted();
+            self.previewWebCamSettings.webcamElementHls[0].muted = self.previewWebCamSettings.webcamMuted();
+        };
+
+        // Setting Button actions
+        self.addMultiCamProfile = function () {
+            self.settings.settings.plugins.multicam.multicam_profiles.push({
+                name: ko.observable('Webcam ' + self.multicam_profiles().length),
+                URL: ko.observable('http://'),
+                snapshot: ko.observable('http://'),
+                streamRatio: ko.observable(''),
+                flipH: ko.observable(false),
+                flipV: ko.observable(false),
+                rotate90: ko.observable(false),
+                isButtonEnabled: ko.observable(true)
             });
+            self.multicam_profiles(self.settings.settings.plugins.multicam.multicam_profiles());
+            self.reloadChangesMade(true);
         };
+
+        self.removeMultiCamProfile = function (profile) {
+            self.settings.settings.plugins.multicam.multicam_profiles.remove(profile);
+            self.multicam_profiles(self.settings.settings.plugins.multicam.multicam_profiles());
+            self.reloadChangesMade(true);
+        };
+
+        // Webcam Callbacks
+        self.onWebcamError = function () {
+            self.previewWebCamSettings.webcamError(true)
+            self.previewWebCamSettings.webcamLoaded(false)
+        };
+
+        self.onWebcamLoad = function () {
+            if (self.previewWebCamSettings.webcamLoaded()) return;
+            self.previewWebCamSettings.webcamError(false)
+            self.previewWebCamSettings.webcamHlsEnabled(false)
+            self.previewWebCamSettings.webcamWebRTCEnabled(false)
+            self.previewWebCamSettings.webcamLoaded(true)
+        };
+
+        self.onWebcamLoadHls = function () {
+            if (self.previewWebCamSettings.webcamLoaded()) return;
+            self.previewWebCamSettings.webcamError(false)
+            self.previewWebCamSettings.webcamWebRTCEnabled(false)
+            self.previewWebCamSettings.webcamLoaded(false)
+            self.previewWebCamSettings.webcamHlsEnabled(true)
+        };
+
+        self.onWebcamLoadRtc = function () {
+            if (self.previewWebCamSettings.webcamLoaded()) return;
+            self.previewWebCamSettings.webcamError(false)
+            self.previewWebCamSettings.webcamHlsEnabled(false)
+            self.previewWebCamSettings.webcamLoaded(false)
+            self.previewWebCamSettings.webcamWebRTCEnabled(true)
+        };
+
+        self.unloadWebcam = function () {
+            //console.log("DEBUGG Unloading webcam",webcam)
+            var webcamElement = $('.multicam_preview_container');
+            var webcamImage = webcamElement.find(".webcam_image")
+
+            //Turn off on handlers during unload
+            webcamImage.off("load")
+            webcamImage.off("error")
+
+            //Remove the src of the webcam to unload it from the window
+            webcamImage.attr("src", "")
+
+            // Unload HLS
+            if (self.hls != null) {
+                self.previewWebCamSettings.webcamElementHls.src = null;
+                self.hls.destroy();
+                self.hls = null;
+            }
+        };
+
 
     }
 

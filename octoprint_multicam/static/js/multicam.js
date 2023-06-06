@@ -141,9 +141,11 @@ $(function () {
             }
         };
 
-        self._switchToHlsWebcam = function () {
+        self._switchToHlsWebcam = function (webcam) {
             var video = self.WebCamSettings.webcamElementHls[0];
-            //video.onresize = self.WebCamSettings._updateVideoTagWebcamLayout;
+            video.onresize = function() {
+                self._updateVideoTagWebcamLayout(webcam);
+            };
 
             // Ensure WebRTC is unloaded
             if (self.WebCamSettings.webRTCPeerConnection != null) {
@@ -179,12 +181,14 @@ $(function () {
             self.WebCamSettings.webcamWebRTCEnabled(false);
         };
 
-        self._switchToWebRTCWebcam = function () {
+        self._switchToWebRTCWebcam = function (webcam) {
             if (!isWebRTCAvailable()) {
                 return;
             }
             var video = self.WebCamSettings.webcamElementWebrtc[0];
-            //video.onresize = self.WebCamSettings._updateVideoTagWebcamLayout;
+            video.onresize = function() {
+                self._updateVideoTagWebcamLayout(webcam);
+            };
 
             // Ensure HLS is unloaded
             if (self.hls != null) {
@@ -214,6 +218,58 @@ $(function () {
             self.WebCamSettings.webcamMjpgEnabled(false);
             self.WebCamSettings.webcamHlsEnabled(false);
             self.WebCamSettings.webcamWebRTCEnabled(true);
+        };
+
+        self._updateVideoTagWebcamLayout = function (webcam) {
+            // Get all elements we need
+            var webcamElement = $(webcam[0]);
+            var player = self._getActiveWebcamVideoElement();
+            var rotationContainer = webcamElement.find(
+                ".webcam_video_container .webcam_rotated"
+            );
+            var rotationTarget = webcamElement.find(
+                ".webcam_video_container .webcam_rotated .rotation_target"
+            );
+            var unrotationContainer = webcamElement.find(
+                ".webcam_video_container .webcam_unrotated"
+            );
+            var unrotationTarget = webcamElement.find(
+                ".webcam_video_container .webcam_unrotated .rotation_target"
+            );
+
+            // If we found the rotation container, the view is rotated 90 degrees. This
+            // means we need to manually calculate the player dimensions and apply them
+            // to the rotation target where height = width and width = height (to
+            // accommodate the rotation). The target is centered in the container and
+            // rotated around its center, so after we manually resized the container
+            // everything will layout nicely.
+            if (rotationContainer[0] && player.videoWidth && player.videoHeight) {
+                // Calculate the height the video will have in the UI, based on the
+                // video width and the aspect ratio.
+                var aspectRatio = player.videoWidth / player.videoHeight;
+                var height = aspectRatio * rotationContainer[0].offsetWidth;
+
+                // Enforce the height on the rotation container and the rotation target.
+                // Width of the container will be 100%, height will be calculated
+                //
+                // The size of the rotation target (the element that has the 90 deg
+                // transform) is the inverse size of the container (so height -> width
+                // and width -> height)
+                rotationContainer[0].style.height = height + "px";
+                rotationTarget[0].style.height = rotationContainer[0].offsetWidth + "px";
+                rotationTarget[0].style.width = rotationContainer[0].offsetHeight + "px";
+
+                // Remove the padding we used to give the element an initial height.
+                rotationContainer[0].style.paddingBottom = 0;
+            }
+
+            // We are not rotated, clean up all changes we might have done before
+            if (unrotationContainer[0]) {
+                unrotationContainer[0].style.height = null;
+                unrotationContainer[0].style.paddingBottom = 0;
+                unrotationTarget[0].style.height = null;
+                unrotationTarget[0].style.width = null;
+            }
         };
 
         // Webcam actions
@@ -259,10 +315,10 @@ $(function () {
                         self._switchToMjpgWebcam(webcam)
                         webcamImage.attr("src", self.WebCamSettings.streamUrlEscaped())
                     } else if (streamType == "hls") {
-                        self._switchToHlsWebcam()
+                        self._switchToHlsWebcam(webcam)
                         self.onWebcamLoadHls(webcam)
                     } else if (isWebRTCAvailable() && streamType == "webrtc") {
-                        self._switchToWebRTCWebcam()
+                        self._switchToWebRTCWebcam(webcam)
                         self.onWebcamLoadRtc(webcam)
                     } else {
                         console.error("Error: Unknown stream type " + streamType)

@@ -28,6 +28,12 @@
 	color: #FFF;
 }
 
+.webcam_video_container {
+    width: 100%;
+    position: relative;
+    outline: 0
+}
+
 .webcam_video_container .video-controls {
     position: absolute;
     bottom: 10px;
@@ -40,9 +46,26 @@
     opacity: 1
 }
 
-.webcam_img_container {
-    outline: 0;
-    background-color: #000
+.webcam_video_container .webcam_hls,
+.webcam_video_container .webcam_rtsp {
+    width: 100%;
+    height: 100%
+}
+
+.webcam_video_container .webcam_rotated {
+    position: relative;
+    width: 100%;
+    padding-bottom: 56.25%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: auto
+}
+
+.webcam_video_container .webcam_rotated .rotation_target {
+    position: absolute;
+    transform: rotate(-90deg);
+    width: 100%
 }
 
 .webcam_img_container,
@@ -50,6 +73,16 @@
     width: 100%;
     position: relative;
     min-height: 300px;
+}
+
+.webcam_video_container .webcam_rotated .rotation_target div {
+    width: 100%;
+    height: 100%
+}
+
+.webcam_img_container {
+    outline: 0;
+    background-color: #000
 }
 
 .webcam_img_container .nowebcam {

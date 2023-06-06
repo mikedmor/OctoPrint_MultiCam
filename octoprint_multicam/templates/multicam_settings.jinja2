@@ -41,7 +41,7 @@
             <div class="input-append span2">
                 <input type="text" class="span12 text-right"
                     data-bind="value: URL, attr: { 'title': 'URL of stream' },
-                                                                        event: {change: function(){$root.updatePreviewSettings($index);}}">
+                                                                        event: {change: function(){$root._updatePreviewSettings($index);}}">
             </div>
 
             <div class="input-append span2">
@@ -52,22 +52,22 @@
             <div class="span1">
                 <select style="width: 120%"
                     data-bind="options: $parent.available_ratios, value: streamRatio, attr: { 'title': 'Stream ratio' },
-                                                       event: {change: function(){$root.updatePreviewSettings($index);}}"></select>
+                                                       event: {change: function(){$root._updatePreviewSettings($index);}}"></select>
             </div>
             <div class="span1">
                 <input style="padding: 4px; margin: 0px;" type="checkbox" class="span12 text-right"
                     data-bind="checked: flipH, attr: { 'title': 'Flip Horizontally' },
-                                                                                                               event: {change: function(){$root.updatePreviewSettings($index);}}">
+                                                                                                               event: {change: function(){$root._updatePreviewSettings($index);}}">
             </div>
             <div class="span1">
                 <input style="padding: 4px; margin: 0px;" type="checkbox" class="span12 text-right"
                     data-bind="checked: flipV, attr: { 'title': 'Flip Vertically' },
-                                                                                                               event: {change: function(){$root.updatePreviewSettings($index);}}">
+                                                                                                               event: {change: function(){$root._updatePreviewSettings($index);}}">
             </div>
             <div class="span1">
                 <input style="padding: 4px; margin: 0px;" type="checkbox" class="span12 text-right"
                     data-bind="checked: rotate90, attr: { 'title': 'Rotate 90' },
-                                                                                        event: {change: function(){$root.updatePreviewSettings($index);}}">
+                                                                                        event: {change: function(){$root._updatePreviewSettings($index);}}">
             </div>
             <div class="span1">
                 <button title="Remove Webcam" class="btn btn-danger"

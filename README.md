@@ -24,13 +24,15 @@ As new plugins are discovered that causes issues with MultiCam, they will be lis
 
 ## Developers note
 
-Other plugin developers could read the camera profiles with the [OctoPrint-Helper](https://docs.octoprint.org/en/master/plugins/helpers.html#helpers) functionality like this:
+DEPRECIATED: Other plugin developers could read the camera profiles with the [OctoPrint-Helper](https://docs.octoprint.org/en/master/plugins/helpers.html#helpers) functionality like this:
 ```python
 helpers = self._plugin_manager.get_helpers("multicam")
 if helpers and "get_webcam_profiles" in helpers:
     self.camProfiles = helpers["get_webcam_profiles"]()
 ```
 But keep in mind that you will receive a copy of the current camera profiles!
+
+NOTE: These helper functions have been removed in version 0.4.0, instead it is now recommended to rely on the webcams plugin in Octoprint
 ## Support my work
 Programming is not only my job, but also something I enjoy doing in my spare time. If you enjoy my work, or received support from me, please consider dropping a donation to my paypal, alternative i also accept Cryptocurrency!
 

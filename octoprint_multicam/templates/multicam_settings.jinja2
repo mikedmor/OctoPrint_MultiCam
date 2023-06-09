@@ -1,51 +1,78 @@
 <!-- ko allowBindings: true -->
 <form id="settings_plugin_multicam_form" class="form-horizontal">
     <h3>{{ _('Multicam Profiles') }}</h3>
-    <div class="row-fluid">
-        <div class="span3 text-center"><h4>{{ _('Name') }}</h4></div>
-        <div class="span4 text-center"><h4>{{ _('URL') }}</h4></div>
-        <!--<div class="span5"><h4>{{ _('Snapshot') }}</h4></div>-->
-        <div class="span1 text-center"><h4><i class="fa fa-arrows-alt fa-2x" title="{{ _('Stream aspect ratio') }}"></i></h4></div>
-        <div class="span1 text-center"><h4><i class="fa fa-arrows-h fa-2x" title="{{ _('Flip webcam horizontally') }}"></i></h4></div>
-        <div class="span1 text-center"><h4><i class="fa fa-arrows-v fa-2x" title="{{ _('Flip webcam vertically') }}"></i></h4></div>
-        <div class="span1 text-center"><h4><i class="fa fa-rotate-right fa-2x" title="{{ _('Rotate webcam 90 degrees counter clockwise') }}"></i></h4></div>
+    <div class="alert alert-warning" role="alert" data-bind="visible: isClassicWebcamEnabled">
+        ClassicWebcam is enabled. Consider disabling it to hide its webcam interface.
     </div>
-    <div data-bind="foreach: settings.settings.plugins.multicam.multicam_profiles">
+    <div class="row-fluid">
+        <div class="span3 text-center">
+            <h4>{{ _('Name') }}</h4>
+        </div>
+        <div class="span4 text-center">
+            <h4>{{ _('URL') }}</h4>
+        </div>
+        <!--<div class="span5"><h4>{{ _('Snapshot') }}</h4></div>-->
+        <div class="span1 text-center">
+            <h4><i class="fa fa-arrows-alt fa-2x" title="{{ _('Stream aspect ratio') }}"></i></h4>
+        </div>
+        <div class="span1 text-center">
+            <h4><i class="fa fa-arrows-h fa-2x" title="{{ _('Flip webcam horizontally') }}"></i></h4>
+        </div>
+        <div class="span1 text-center">
+            <h4><i class="fa fa-arrows-v fa-2x" title="{{ _('Flip webcam vertically') }}"></i></h4>
+        </div>
+        <div class="span1 text-center">
+            <h4><i class="fa fa-rotate-right fa-2x" title="{{ _('Rotate webcam 90 degrees counter clockwise') }}"></i>
+            </h4>
+        </div>
+    </div>
+    <div data-bind="foreach: multicam_profiles">
         <div class="row-fluid" style="margin-bottom: 5px">
             <div class="span1">
-                    <input style="padding: 4px; margin: 0px;" type="radio" class="span12 text-right" data-bind="checked: $root.selectedPreviewProfileIndex, checkedValue: $index" >
+                <input style="padding: 4px; margin: 0px;" type="radio" class="span12 text-right"
+                    data-bind="checked: $root.selectedPreviewProfileIndex, checkedValue: $index">
             </div>
 
             <div class="span2" style="margin-left">
-                <input type="text" class="span12 text-right" data-bind="value: name">
+                <input type="text" class="span12 text-right"
+                    data-bind="value: name, 
+                                                                        event: {change: function(){$root.reloadChangesMade(true);}}">
             </div>
             <div class="input-append span2">
-                <input type="text" class="span12 text-right" data-bind="value: URL, enable: $index()!==0, attr: { 'title': $index()!==0 ? 'URL of stream' : 'Edit this field in the Webcam & Timelapse tab (Applies after Save)' },
-                                                                        event: {change: function(){$root.updatePreviewSettings($index);}}">
+                <input type="text" class="span12 text-right"
+                    data-bind="value: URL, attr: { 'title': 'URL of stream' },
+                                                                        event: {change: function(){$root._updatePreviewSettings($index);}}">
             </div>
 
             <div class="input-append span2">
-                <input type="text" class="span12 text-right" data-bind="value: snapshot, enable: $index()!==0, attr: { 'title': $index()!==0 ? 'URL of snapshot' : 'Edit this field in the Webcam & Timelapse tab (Applies after Save)' }">
+                <input type="text" class="span12 text-right"
+                    data-bind="value: snapshot, attr: { 'title': 'URL of snapshot' }">
             </div>
 
-            <div class="span1" >
-                <select style="width: 120%" data-bind="options: $parent.settings.webcam_available_ratios, value: streamRatio, enable: $index()!==0, attr: { 'title': $index()!==0 ? 'Stream ratio' : 'Edit this field in the Webcam & Timelapse tab (Applies after Save)' },
-                                                       event: {change: function(){$root.updatePreviewSettings($index);}}"></select>
+            <div class="span1">
+                <select style="width: 120%"
+                    data-bind="options: $parent.available_ratios, value: streamRatio, attr: { 'title': 'Stream ratio' },
+                                                       event: {change: function(){$root._updatePreviewSettings($index);}}"></select>
             </div>
             <div class="span1">
-                <input style="padding: 4px; margin: 0px;" type="checkbox" class="span12 text-right" data-bind="checked: flipH, enable: $index()!==0, attr: { 'title': $index()!==0 ? 'Flip Horizontally' : 'Edit this field in the Webcam & Timelapse tab (Applies after Save)' },
-                                                                                                               event: {change: function(){$root.updatePreviewSettings($index);}}">
+                <input style="padding: 4px; margin: 0px;" type="checkbox" class="span12 text-right"
+                    data-bind="checked: flipH, attr: { 'title': 'Flip Horizontally' },
+                                                                                                               event: {change: function(){$root._updatePreviewSettings($index);}}">
             </div>
             <div class="span1">
-                <input style="padding: 4px; margin: 0px;" type="checkbox" class="span12 text-right" data-bind="checked: flipV, enable: $index()!==0, attr: { 'title': $index()!==0 ? 'Flip Vertically' : 'Edit this field in the Webcam & Timelapse tab (Applies after Save)' },
-                                                                                                               event: {change: function(){$root.updatePreviewSettings($index);}}">
+                <input style="padding: 4px; margin: 0px;" type="checkbox" class="span12 text-right"
+                    data-bind="checked: flipV, attr: { 'title': 'Flip Vertically' },
+                                                                                                               event: {change: function(){$root._updatePreviewSettings($index);}}">
             </div>
             <div class="span1">
-                <input style="padding: 4px; margin: 0px;" type="checkbox" class="span12 text-right" data-bind="checked: rotate90, enable: $index()!==0, attr: { 'title': $index()!==0 ? 'Rotate 90' : 'Edit this field in the Webcam & Timelapse tab (Applies after Save)' },
-                                                                                        event: {change: function(){$root.updatePreviewSettings($index);}}">
+                <input style="padding: 4px; margin: 0px;" type="checkbox" class="span12 text-right"
+                    data-bind="checked: rotate90, attr: { 'title': 'Rotate 90' },
+                                                                                        event: {change: function(){$root._updatePreviewSettings($index);}}">
             </div>
-            <div class="span1" >
-                <button title="Remove Webcam" class="btn btn-danger" data-bind="click: $parent.removeMultiCamProfile, enable: $index()!==0, attr: { 'title': $index()!==0 ? 'Remove Webcam' : 'Default Webcam cannot be removed!' }"><i class="fa fa-trash-o"></i></button>
+            <div class="span1">
+                <button title="Remove Webcam" class="btn btn-danger"
+                    data-bind="click: $parent.removeMultiCamProfile, enable: $index()!==0, attr: { 'title': $index()!==0 ? 'Remove Webcam' : 'Default Webcam cannot be removed!' }"><i
+                        class="fa fa-trash-o"></i></button>
             </div>
         </div>
 
@@ -53,17 +80,75 @@
     </div>
     <div class="row-fluid">
         <div class="offset10 span2">
-            <button title="Add Webcam" class="btn btn-primary" data-bind="click: addMultiCamProfile"><i class="fa fa-plus"></i></button>
+            <button title="Add Webcam" class="btn btn-primary" data-bind="click: addMultiCamProfile"><i
+                    class="fa fa-plus"></i></button>
         </div>
     </div>
     <div class="row-fluid">
         <div class="span12">
             <div>Streaming from: <b><span data-bind="text:previewWebCamSettings.streamUrl"></span></b></div>
-            <div id="webcam_container">
-                <div id="webcam_rotator" data-bind="css: { webcam_rotated: previewWebCamSettings.webcam_rotate90(),
-                                                            webcam_unrotated: !previewWebCamSettings.webcam_rotate90()  }">
-                    <div class="webcam_fixed_ratio" style="padding-bottom:0px" data-bind="css: previewWebCamSettings.webcamRatioClass">
-                        <img id="multicam-videoStream" data-bind="css: { flipH: previewWebCamSettings.webcam_flipH(), flipV: previewWebCamSettings.webcam_flipV() }"  >
+            <div class="multicam_preview_container">
+                <div class="webcam_video_container" tabindex="0"
+                    data-bind="visible: previewWebCamSettings.webcamWebRTCEnabled() || previewWebCamSettings.webcamHlsEnabled(), css: { webcam_rotated: previewWebCamSettings.webcam_rotate90(), webcam_unrotated: !previewWebCamSettings.webcam_rotate90() }"
+                    style="position: relative;display: none;">
+                    <div class="video-controls btn-group action-buttons">
+                        <div class="btn btn-mini" data-bind="click: function(data, event) { launchWebcamFullscreen() }">
+                            <i class="fas fa-expand"></i></div>
+                        <div class="btn btn-mini"
+                            data-bind="visible: document.pictureInPictureEnabled, click: function(data, event) {  launchWebcamPictureInPicture() }">
+                            <i class="fas fa-images"></i>
+                        </div>
+                        <div class="btn btn-mini" data-bind="click: function(data, event) { toggleWebcamMute() }">
+                            <!-- ko if: previewWebCamSettings.webcamMuted() -->
+                            <i class="fas fa-volume-mute"></i>
+                            <!-- /ko -->
+                            <!-- ko ifnot: previewWebCamSettings.webcamMuted() -->
+                            <i class="fas fa-volume-up"></i>
+                            <!-- /ko -->
+                        </div>
+                    </div>
+                    <div
+                        data-bind="css: { webcam_rotated: previewWebCamSettings.webcam_rotate90(), webcam_unrotated: !previewWebCamSettings.webcam_rotate90() }">
+                        <div class="rotation_target">
+                            <div
+                                data-bind="css: { flipH: previewWebCamSettings.webcam_flipH(), flipV: previewWebCamSettings.webcam_flipV() }">
+                                <video class="webcam_webrtc" muted autoplay playsinline style="width: 100%"
+                                    data-bind="visible: previewWebCamSettings.webcamWebRTCEnabled()"></video>
+                                <video class="webcam_hls" muted autoplay playsinline style="width: 100%"
+                                    data-bind="visible: previewWebCamSettings.webcamHlsEnabled()"
+                                    type="application/x-mpegURL"></video>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="webcam_img_container" tabindex="0"
+                    data-bind="visible: previewWebCamSettings.webcamMjpgEnabled()">
+                    <div class="nowebcam" data-bind="visible: !previewWebCamSettings.webcamLoaded()">
+                        <div class="text webcam_loading"
+                            data-bind="visible: !previewWebCamSettings.webcamLoaded() && !previewWebCamSettings.webcamError()">
+                            <p><strong>{{ _('Webcam stream loading...') }}</strong></p>
+                        </div>
+                        <div class="text webcam_error"
+                            data-bind="visible: !previewWebCamSettings.webcamLoaded() && previewWebCamSettings.webcamError()">
+                            <p><strong>{{ _('Webcam stream not loaded') }}</strong></p>
+                            <p><small>{{ _('It might not be configured correctly or require authentication. You can
+                                    change
+                                    the URL of the stream under "Settings" > "Classic Webcam" > "Stream URL". If you
+                                    don\'t
+                                    have a webcam you can also just disable webcam support there.') }}</small></p>
+                            <p><small>{{ _('Currently configured stream URL') }}: <a target="_blank" rel="noreferrer"
+                                        data-bind="attr: {href: previewWebCamSettings.streamUrl}, text: previewWebCamSettings.streamUrl"></a></small>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="webcam_rotator"
+                        data-bind="css: { webcam_rotated: previewWebCamSettings.webcam_rotate90(), webcam_unrotated: !previewWebCamSettings.webcam_rotate90() }">
+                        <div class="webcam_fixed_ratio" data-bind="css: previewWebCamSettings.webcamRatioClass">
+                            <div class="webcam_fixed_ratio_inner">
+                                <img class="webcam_image_preview"
+                                    data-bind="css: { flipH: previewWebCamSettings.webcam_flipH(), flipV: previewWebCamSettings.webcam_flipV() }, visible: previewWebCamSettings.webcamLoaded() && !previewWebCamSettings.webcamError()">
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

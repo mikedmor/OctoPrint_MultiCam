@@ -72,6 +72,10 @@
 .webcam_video_container .webcam_unrotated {
     width: 100%;
     position: relative;
+}
+
+#control .webcam_img_container,
+#control .webcam_video_container .webcam_unrotated{
     min-height: 300px;
 }
 

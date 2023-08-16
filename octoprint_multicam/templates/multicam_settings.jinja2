@@ -4,6 +4,9 @@
     <div class="alert alert-warning" role="alert" data-bind="visible: isClassicWebcamEnabled()">
         ClassicWebcam is enabled. Consider disabling it to hide its webcam interface.
     </div>
+    <div class="alert alert-danger" role="alert" data-bind="visible: !OctoPrint.coreui.viewmodels.settingsViewModel.webcam_webcamEnabled()">
+        Webcam is disabled in OctoPrint - <a href="javascript:$('#settings_webcam_link a').trigger('click');">click here to open WebCam setting</a>
+    </div>
     <div class="row-fluid">
         <div class="span3 text-center">
             <h4>{{ _('Name') }}</h4>

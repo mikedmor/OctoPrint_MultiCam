@@ -48,7 +48,9 @@ $(function () {
             let webcams = ko.toJS(self.settings.multicam_profiles)
             self.webcams = []
             self.surfaces = []
-
+            if ($("#webcam-group").children().length == 0 || OctoPrint.coreui.viewmodels.settingsViewModel.webcam_webcamEnabled()){
+                return false;
+            }
             for (const child of document.getElementById("webcam-group").children) {
                 if (child.id.startsWith("webcam_plugin_multicam")) {
                     // We can use this surface, take next webcam and bind
@@ -95,7 +97,7 @@ $(function () {
             }
 
             if (parsed.protocol === "webrtc:" || parsed.protocol === "webrtcs:") {
-                console.log("DEBUGG Webcam stream type: webrtc")
+                // console.log("DEBUGG Webcam stream type: webrtc")
                 return "webrtc";
             }
 
@@ -103,13 +105,13 @@ $(function () {
             if (lastDotPosition !== -1) {
                 var extension = parsed.pathname.substring(lastDotPosition + 1);
                 if (extension.toLowerCase() === "m3u8") {
-                    console.log("DEBUGG Webcam stream type: hls")
+                    // console.log("DEBUGG Webcam stream type: hls")
                     return "hls";
                 }
             }
 
             // By default, 'mjpg' is the stream type.
-            console.log("DEBUGG Webcam stream type: mjpg")
+            // console.log("DEBUGG Webcam stream type: mjpg")
             return "mjpg";
         };
 
@@ -165,10 +167,10 @@ $(function () {
                 typeof video.canPlayType != undefined &&
                 video.canPlayType("application/vnd.apple.mpegurl") == "probably"
             ) {
-                console.log("DEBUGG Using native HLS playback")
+                // console.log("DEBUGG Using native HLS playback")
                 video.src = self.streamUrlEscaped();
             } else if (Hls.isSupported()) {
-                console.log("DEBUGG Using HLS.js playback")
+                // console.log("DEBUGG Using HLS.js playback")
                 self.hls = new Hls();
                 self.hls.loadSource(self.WebCamSettings.streamUrlEscaped());
                 self.hls.attachMedia(video);
@@ -293,7 +295,7 @@ $(function () {
                     }
                     self.WebCamSettings.webcam_flipH(webcam[1].flipH)
                     self.WebCamSettings.webcam_flipV(webcam[1].flipV)
-                    console.log("Loading webcam: ", webcam[1].URL)
+                    //console.log("Loading webcam: ", webcam[1].URL)
 
                     self.WebCamSettings.streamUrl(webcam[1].URL)
 
@@ -336,12 +338,12 @@ $(function () {
         };
 
         self.launchWebcamPictureInPicture = function () {
-            console.log("DEBUGG launchWebcamPictureInPicture",self._getActiveWebcamVideoElement())
+            // console.log("DEBUGG launchWebcamPictureInPicture",self._getActiveWebcamVideoElement())
             self._getActiveWebcamVideoElement().requestPictureInPicture();
         };
 
         self.launchWebcamFullscreen = function () {
-            console.log("DEBUGG launchWebcamPictureInPicture",self._getActiveWebcamVideoElement())
+            // console.log("DEBUGG launchWebcamPictureInPicture",self._getActiveWebcamVideoElement())
             self._getActiveWebcamVideoElement().requestFullscreen();
         };
 

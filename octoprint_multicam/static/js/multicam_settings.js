@@ -73,7 +73,7 @@ $(function () {
                 url: "/plugin/multicam/classicwebcamstatus",
                 type: "GET",
                 success: function (response) {
-                    self.isClassicWebcamEnabled = response.enabled;
+                    self.isClassicWebcamEnabled(response.enabled);
                     //console.log("DEBUGGG isClassicWebcamEnabled", self.isClassicWebcamEnabled)
 
                     //TODO: Inform the user that the classic webcam is enabled and they should consider disabling it

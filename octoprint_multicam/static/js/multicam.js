@@ -48,7 +48,7 @@ $(function () {
             let webcams = ko.toJS(self.settings.multicam_profiles)
             self.webcams = []
             self.surfaces = []
-            if ($("#webcam-group").children().length == 0 || OctoPrint.coreui.viewmodels.settingsViewModel.webcam_webcamEnabled()){
+            if ($("#webcam-group").children().length == 0 || !OctoPrint.coreui.viewmodels.settingsViewModel.webcam_webcamEnabled()){
                 return false;
             }
             for (const child of document.getElementById("webcam-group").children) {

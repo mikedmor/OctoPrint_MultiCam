@@ -3,6 +3,7 @@ from __future__ import absolute_import
 
 import requests
 import flask
+import threading
 
 import octoprint.plugin
 import octoprint.settings
@@ -24,6 +25,7 @@ class MultiCamPlugin(octoprint.plugin.TemplatePlugin,
         self.cacheBuster = True
         self.snapshotSslValidation = True
         self.webRtcServers = []
+        self._capture_mutex = threading.Lock()
 
     def get_assets(self):
         return {
@@ -154,16 +156,18 @@ class MultiCamPlugin(octoprint.plugin.TemplatePlugin,
         
         return [profile_to_webcam(profile) for profile in profiles]
 
-    def take_webcam_snapshot(self, name):
-        webcam = next((webcam for webcam in self.get_webcam_configurations() if webcam.name == name), None)
-        if webcam is None:
-            raise WebcamNotAbleToTakeSnapshotException(name)
+    def take_webcam_snapshot(self, provided_webcam):
+        webcam = provided_webcam.config
 
-        snapshot_url = webcam.snapshot_url
+        if webcam is None:
+            raise WebcamNotAbleToTakeSnapshotException("provided_webcam is None")
+
+        # using compat.snapshot because snapshotDisplay is supposedly only for user
+        snapshot_url = webcam.compat.snapshot
         can_snapshot = snapshot_url is not None and snapshot_url != "http://" and snapshot_url != ""
 
         if not can_snapshot:
-            raise WebcamNotAbleToTakeSnapshotException(name)
+            raise WebcamNotAbleToTakeSnapshotException(webcam.name)
 
         with self._capture_mutex:
             self._logger.debug(f"Capturing image from {snapshot_url}")

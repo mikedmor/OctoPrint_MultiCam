@@ -42,7 +42,7 @@ class MultiCamPlugin(octoprint.plugin.TemplatePlugin,
         return flask.jsonify(enabled=self.isClassicWebcamEnabled())
     
     def isClassicWebcamEnabled(self):
-        plugin = self._plugin_manager.get_plugin("classicwebcam")
+        plugin = self._plugin_manager.get_plugin("classicwebcam",True)
         return plugin is not None
 
     def get_settings_version(self):

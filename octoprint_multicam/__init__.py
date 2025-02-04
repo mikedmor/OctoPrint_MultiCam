@@ -120,7 +120,7 @@ class MultiCamPlugin(octoprint.plugin.TemplatePlugin,
             flipH = profile.get("flipH", None) or False
             flipV = profile.get("flipV", None) or False
             rotate90 = profile.get("rotate90", None) or False
-            snapshot = profile.get("snapshot", None)
+            snapshot = profile.get("snapshot", None) or ""
             stream = profile.get("URL", None) or ""
             streamRatio = profile.get("streamRatio", None) or "4:3"
             canSnapshot = snapshot != "" and snapshot is not None
@@ -156,8 +156,17 @@ class MultiCamPlugin(octoprint.plugin.TemplatePlugin,
         
         return [profile_to_webcam(profile) for profile in profiles]
 
+    def lookup_webcam(self, webcam_name):
+        webcam_configs = self.get_webcam_configurations()
+        return [webcam_config for webcam_config in webcam_configs if webcam_config.name == webcam_name]
+
     def take_webcam_snapshot(self, provided_webcam):
-        webcam = provided_webcam.config
+        if isinstance(provided_webcam, str):
+            webcam_lookup = self.lookup_webcam(provided_webcam)
+            if len(webcam_lookup) > 0:
+                webcam = webcam_lookup[0]
+        else:
+            webcam = provided_webcam.config
 
         if webcam is None:
             raise WebcamNotAbleToTakeSnapshotException("provided_webcam is None")

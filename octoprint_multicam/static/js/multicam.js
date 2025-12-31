@@ -34,9 +34,9 @@ $(function () {
             webcamRatioClass: ko.observable('ratio169'),
             webcamError: ko.observable(false),
             webcamMuted: ko.observable(true),
-            webRTCPeerConnection: ko.observable(null),
-            webcamElementHls: ko.observable(null),
-            webcamElementWebrtc: ko.observable(null)
+            webRTCPeerConnection: null,
+            webcamElementHls: null,
+            webcamElementWebrtc: null
         };
 
         // Octoprint Hooks
@@ -151,13 +151,7 @@ $(function () {
 
             // Ensure WebRTC is unloaded
             if (self.WebCamSettings.webRTCPeerConnection != null) {
-                try {
-                    if (typeof self.WebCamSettings.webRTCPeerConnection.close === 'function') {
-                        self.WebCamSettings.webRTCPeerConnection.close();
-                    }
-                } catch(e) {
-                    console.error("Error: unable to close WebRTC connection", e)
-                }
+                self.WebCamSettings.webRTCPeerConnection.close();
                 self.WebCamSettings.webRTCPeerConnection = null;
             }
 

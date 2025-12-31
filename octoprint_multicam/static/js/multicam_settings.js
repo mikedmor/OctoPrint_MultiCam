@@ -40,9 +40,9 @@ $(function () {
             webcamRatioClass: ko.observable('ratio169'),
             webcamError: ko.observable(false),
             webcamMuted: ko.observable(true),
-            webRTCPeerConnection: ko.observable(null),
-            webcamElementHls: ko.observable(null),
-            webcamElementWebrtc: ko.observable(null)
+            webRTCPeerConnection: null,
+            webcamElementHls: null,
+            webcamElementWebrtc: null
         };
 
         self.reloadChangesMade = ko.observable(false);
@@ -64,6 +64,8 @@ $(function () {
         };
 
         self.onBeforeBinding = function () {
+            self.streamWebrtcIceServers =
+                self.settings.settings.plugins.multicam.streamWebrtcIceServers;
             self.multicam_profiles(self.settings.settings.plugins.multicam.multicam_profiles());
             self.available_ratios = ["16:9", "4:3"];
         };
@@ -194,13 +196,7 @@ $(function () {
 
             // Ensure WebRTC is unloaded
             if (self.previewWebCamSettings.webRTCPeerConnection != null) {
-                try {
-                    if (typeof self.previewWebCamSettings.webRTCPeerConnection.close === 'function') {
-                        self.previewWebCamSettings.webRTCPeerConnection.close();
-                    }
-                } catch(e) {
-                    console.error("Error: unable to close WebRTC connection", e)
-                }
+                self.previewWebCamSettings.webRTCPeerConnection.close();
                 self.previewWebCamSettings.webRTCPeerConnection = null;
             }
 
@@ -254,7 +250,7 @@ $(function () {
                 self.previewWebCamSettings.webRTCPeerConnection = startWebRTC(
                     video,
                     self.previewWebCamSettings.streamUrlEscaped(),
-                    self.settings.streamWebrtcIceServers()
+                    self.streamWebrtcIceServers()
                 );
             }
 

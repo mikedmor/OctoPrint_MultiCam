@@ -20,11 +20,6 @@ class MultiCamPlugin(octoprint.plugin.TemplatePlugin,
                       octoprint.plugin.ReloadNeedingPlugin):
 
     def __init__(self):
-        self.streamTimeout = 15
-        self.snapshotTimeout = 15
-        self.cacheBuster = True
-        self.snapshotSslValidation = True
-        self.webRtcServers = []
         self._capture_mutex = threading.Lock()
 
     def get_assets(self):
@@ -71,15 +66,23 @@ class MultiCamPlugin(octoprint.plugin.TemplatePlugin,
                 self._settings.set(['multicam_profiles'], self.get_settings_defaults()["multicam_profiles"])
 
     def get_settings_defaults(self):
-        return dict(multicam_profiles=[{
-            'name':'Default',
-            'URL': octoprint.settings.settings().get(["webcam","stream"]),
-            'snapshot': octoprint.settings.settings().get(["webcam","snapshot"]),
-            'streamRatio': octoprint.settings.settings().get(["webcam","streamRatio"]),
-            'flipH':octoprint.settings.settings().get(["webcam","flipH"]),
-            'flipV':octoprint.settings.settings().get(["webcam","flipV"]),
-            'rotate90':octoprint.settings.settings().get(["webcam","rotate90"]),
-            'isButtonEnabled':'true'}])
+        return {
+            "streamTimeout": 15,
+            "streamWebrtcIceServers": ["stun:stun.l.google.com:19302"],
+            "snapshotTimeout": 15,
+            "cacheBuster": False,
+            "snapshotSslValidation": True,
+            "multicam_profiles": [{
+                'name':'Default',
+                'URL': octoprint.settings.settings().get(["webcam","stream"]),
+                'snapshot': octoprint.settings.settings().get(["webcam","snapshot"]),
+                'streamRatio': octoprint.settings.settings().get(["webcam","streamRatio"]),
+                'flipH':octoprint.settings.settings().get(["webcam","flipH"]),
+                'flipV':octoprint.settings.settings().get(["webcam","flipV"]),
+                'rotate90':octoprint.settings.settings().get(["webcam","rotate90"]),
+                'isButtonEnabled':'true'
+            }]
+        }
     
     def on_settings_save(self, data):
         old_profiles = self._settings.get(["multicam_profiles"])
@@ -136,19 +139,20 @@ class MultiCamPlugin(octoprint.plugin.TemplatePlugin,
                 canSnapshot=canSnapshot,
                 compat=WebcamCompatibility(
                     stream=stream,
-                    streamTimeout=self.streamTimeout,
+                    streamTimeout=self._settings.get(["streamTimeout"]),
                     streamRatio=streamRatio,
-                    cacheBuster=self.cacheBuster,
-                    streamWebrtcIceServers=self.webRtcServers,
+                    cacheBuster=self._settings.get(["cacheBuster"]),
+                    streamWebrtcIceServers=self._settings.get(["streamWebrtcIceServers"]),
                     snapshot=snapshot,
-                    snapshotTimeout=self.snapshotTimeout,
-                    snapshotSslValidation=self.snapshotSslValidation,
+                    snapshotTimeout=self._settings.get(["snapshotTimeout"]),
+                    snapshotSslValidation=self._settings.get(["snapshotSslValidation"]),
                 ),
                 extras=dict(
                     stream=stream,
-                    streamTimeout=self.streamTimeout,
+                    streamTimeout=self._settings.get(["streamTimeout"]),
                     streamRatio=streamRatio,
-                    cacheBuster=self.cacheBuster,
+                    streamWebrtcIceServers=self._settings.get(["streamWebrtcIceServers"]),
+                    cacheBuster=self._settings.get(["cacheBuster"]),
                 ),
             )
             self._logger.debug(f"Webcam: {webcam}")
@@ -183,8 +187,8 @@ class MultiCamPlugin(octoprint.plugin.TemplatePlugin,
             r = requests.get(
                 snapshot_url,
                 stream=True,
-                timeout=self.snapshotTimeout,
-                verify=self.snapshotSslValidation,
+                timeout=self._settings.get(["snapshotTimeout"]),
+                verify=self._settings.get(["snapshotSslValidation"]),
             )
             r.raise_for_status()
             return r.iter_content(chunk_size=1024)

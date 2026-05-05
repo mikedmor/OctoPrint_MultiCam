@@ -7,9 +7,8 @@ import threading
 
 import octoprint.plugin
 import octoprint.settings
-from octoprint.schema.webcam import RatioEnum, Webcam, WebcamCompatibility
-from octoprint.webcams import WebcamNotAbleToTakeSnapshotException, get_webcams
-from octoprint.events import Events
+from octoprint.schema.webcam import Webcam, WebcamCompatibility
+from octoprint.webcams import WebcamNotAbleToTakeSnapshotException
 
 
 class MultiCamPlugin(octoprint.plugin.TemplatePlugin,

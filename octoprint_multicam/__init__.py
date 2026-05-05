@@ -113,6 +113,9 @@ class MultiCamPlugin(octoprint.plugin.TemplatePlugin,
 
         return settings_templates + webcam_templates
     
+    def is_template_autoescaped(self):
+        return True
+    
     # ~~ WebcamProviderPlugin API
     
     def get_webcam_configurations(self):

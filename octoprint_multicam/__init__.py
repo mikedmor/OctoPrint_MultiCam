@@ -36,6 +36,9 @@ class MultiCamPlugin(octoprint.plugin.TemplatePlugin,
             "css":["css/multicam.css"]
         }
     
+    def is_blueprint_csrf_protected(self):
+        return True
+    
     @octoprint.plugin.BlueprintPlugin.route("/classicwebcamstatus", methods=["GET"])
     def get_classic_webcam_status(self):
         return flask.jsonify(enabled=self.isClassicWebcamEnabled())

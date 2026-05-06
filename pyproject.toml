@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "OctoPrint-MultiCam"
-version = "0.4.3"
+version = "0.4.4"
 description = "Extends the Control tab of OctoPrint, allowing the ability to switch between multiple webcam feeds."
 authors = [
     { name = "Michael Morris", email = "mikedmor@gmail.com" },

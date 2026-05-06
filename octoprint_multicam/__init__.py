@@ -7,9 +7,8 @@ import threading
 
 import octoprint.plugin
 import octoprint.settings
-from octoprint.schema.webcam import RatioEnum, Webcam, WebcamCompatibility
-from octoprint.webcams import WebcamNotAbleToTakeSnapshotException, get_webcams
-from octoprint.events import Events
+from octoprint.schema.webcam import Webcam, WebcamCompatibility
+from octoprint.webcams import WebcamNotAbleToTakeSnapshotException
 
 
 class MultiCamPlugin(octoprint.plugin.TemplatePlugin,
@@ -36,6 +35,9 @@ class MultiCamPlugin(octoprint.plugin.TemplatePlugin,
             ],
             "css":["css/multicam.css"]
         }
+    
+    def is_blueprint_csrf_protected(self):
+        return True
     
     @octoprint.plugin.BlueprintPlugin.route("/classicwebcamstatus", methods=["GET"])
     def get_classic_webcam_status(self):
@@ -110,6 +112,9 @@ class MultiCamPlugin(octoprint.plugin.TemplatePlugin,
         webcam_templates = list(map(webcam_to_template, list(webcams)))
 
         return settings_templates + webcam_templates
+    
+    def is_template_autoescaped(self):
+        return True
     
     # ~~ WebcamProviderPlugin API
     

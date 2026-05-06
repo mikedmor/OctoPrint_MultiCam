@@ -1,0 +1,42 @@
+[build-system]
+requires = [
+    "setuptools>=68",
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "OctoPrint-MultiCam"
+version = "0.4.4"
+description = "Extends the Control tab of OctoPrint, allowing the ability to switch between multiple webcam feeds."
+authors = [
+    { name = "Michael Morris", email = "mikedmor@gmail.com" },
+]
+requires-python = ">=2.7,<4"
+dependencies = []
+dynamic = [
+    "license",
+]
+
+[project.entry-points."octoprint.plugin"]
+multicam = "octoprint_multicam"
+
+[project.urls]
+Homepage = "https://github.com/mikedmor/OctoPrint_MultiCam"
+
+[project.optional-dependencies]
+develop = [
+    "go-task-bin",
+]
+
+[project.readme]
+file = "README.md"
+content-type = "text/markdown"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+include = [
+    "octoprint_multicam",
+    "octoprint_multicam.*",
+]
